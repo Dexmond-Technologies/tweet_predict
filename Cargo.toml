@@ -1,5 +1,0 @@
-[workspace]
-members = [
-    "programs/tweet-predict"
-]
-resolver = "2"
