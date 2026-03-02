@@ -87,7 +87,6 @@ pub mod tweet_predict {
 
         let market = &mut ctx.accounts.market;
         market.creator = ctx.accounts.creator.key();
-        market.resolver = ctx.accounts.protocol_state.oracle;
         market.oracle_type = oracle_type;
         market.oracle_account = oracle_account;
         market.target_price = target_price;
@@ -211,21 +210,6 @@ pub mod tweet_predict {
         Ok(())
     }
 
-    // ─────────────────────────────────────────────────
-    //  RESOLVE MARKET (MANUAL)
-    // ─────────────────────────────────────────────────
-    pub fn resolve_market(ctx: Context<ResolveMarket>, outcome: bool) -> Result<()> {
-        let market = &mut ctx.accounts.market;
-        let clock = Clock::get()?;
-
-        require!(market.status == MarketStatus::Active, ErrorCode::MarketNotActive);
-        require!(clock.unix_timestamp >= market.end_timestamp, ErrorCode::EndTimestampNotReached);
-        require!(market.oracle_type == 0, ErrorCode::InvalidOracleType);
-
-        market.status = MarketStatus::Resolved { outcome };
-
-        Ok(())
-    }
 
     // ─────────────────────────────────────────────────
     //  RESOLVE MARKET (PYTH PRICE FEED)
@@ -472,12 +456,6 @@ pub struct PlaceBet<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-#[derive(Accounts)]
-pub struct ResolveMarket<'info> {
-    #[account(mut, has_one = resolver)]
-    pub market: Account<'info, Market>,
-    pub resolver: Signer<'info>,
-}
 
 #[derive(Accounts)]
 pub struct ResolveMarketPyth<'info> {
@@ -536,7 +514,6 @@ pub struct ProtocolState {
 #[account]
 pub struct Market {
     pub creator: Pubkey,
-    pub resolver: Pubkey,
     pub oracle_type: u8,
     pub oracle_account: Pubkey,
     pub target_price: i64,
