@@ -247,7 +247,7 @@ app.post('/api/action/create', async (req, res) => {
     const questionHash = Array.from(crypto.createHash('sha256').update(question).digest());
 
     const ix = await program.methods
-      .createMarket(questionHash, question, description, endTimestamp, resolutionWindow, oracleType, oracleAccount, targetPrice, priceDirection)
+      .createMarket(questionHash, question, description, endTimestamp, oracleType, oracleAccount, targetPrice, priceDirection)
       .accounts({
         protocolState: protocolPDA,
         market: marketPDA,
