@@ -107,26 +107,66 @@ app.get('/actions.json', (req, res) => {
 // ─── GET /api/markets ─────────────────────────────────────────────────────────
 app.get('/api/markets', async (req, res) => {
   try {
-    const provider = getReadProvider();
-    const program = getProgram(provider);
-    const markets = await program.account.market.all();
-    const result = markets.map((m) => ({
-      pubkey: m.publicKey.toBase58(),
-      creator: m.account.creator.toBase58(),
-      question: m.account.question,
-      description: m.account.description,
-      endTimestamp: m.account.endTimestamp.toNumber(),
-      status: m.account.status,
-      totalYes: m.account.totalYes.toString(),
-      totalNo: m.account.totalNo.toString(),
-      totalFeesCollected: m.account.totalFeesCollected.toString(),
-      creatorFeeEarned: m.account.creatorFeeEarned.toString(),
-      yesVault: m.account.yesVault.toBase58(),
-      noVault: m.account.noVault.toBase58(),
-      oracleType: m.account.oracleType,
-      targetPrice: m.account.targetPrice.toString(),
-      priceDirection: m.account.priceDirection,
-    }));
+    const connection = getConnection();
+    const MARKET_DISCRIMINATOR = [219, 190, 213, 55, 0, 227, 198, 154];
+    const filters = [{ memcmp: { offset: 0, bytes: anchor.utils.bytes.bs58.encode(Buffer.from(MARKET_DISCRIMINATOR)) } }];
+    const accounts = await connection.getProgramAccounts(PROGRAM_ID, { filters });
+
+    const result = accounts.map(account => {
+        let data = account.account.data;
+        let offset = 8;
+        
+        const creator = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+        const oracleType = data.readUInt8(offset); offset += 1;
+        const oracleAccount = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+        const targetPrice = data.readBigInt64LE(offset); offset += 8;
+        const priceDirection = data.readUInt8(offset); offset += 1;
+        
+        const questionLen = data.readUInt32LE(offset); offset += 4;
+        const question = data.slice(offset, offset + questionLen).toString('utf8'); offset += questionLen;
+        
+        const descLen = data.readUInt32LE(offset); offset += 4;
+        const description = data.slice(offset, offset + descLen).toString('utf8'); offset += descLen;
+        
+        const endTimestamp = data.readBigInt64LE(offset); offset += 8;
+        const resolutionTimestamp = data.readBigInt64LE(offset); offset += 8;
+        
+        const statusType = data.readUInt8(offset); offset += 1;
+        let statusObj = { active: {} };
+        if (statusType === 1) {
+             const outcome = data.readUInt8(offset) === 1; offset += 1;
+             statusObj = { resolved: { outcome } };
+        } else if (statusType === 2) {
+             statusObj = { closed: {} };
+        }
+        
+        const totalYes = data.readBigUInt64LE(offset); offset += 8;
+        const totalNo = data.readBigUInt64LE(offset); offset += 8;
+        const totalFeesCollected = data.readBigUInt64LE(offset); offset += 8;
+        const creatorFeeEarned = data.readBigUInt64LE(offset); offset += 8;
+        
+        const yesVault = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+        const noVault = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+
+        return {
+          pubkey: account.pubkey.toBase58(),
+          creator: creator.toBase58(),
+          question,
+          description,
+          endTimestamp: Number(endTimestamp),
+          status: statusObj,
+          totalYes: totalYes.toString(),
+          totalNo: totalNo.toString(),
+          totalFeesCollected: totalFeesCollected.toString(),
+          creatorFeeEarned: creatorFeeEarned.toString(),
+          yesVault: yesVault.toBase58(),
+          noVault: noVault.toBase58(),
+          oracleType,
+          targetPrice: targetPrice.toString(),
+          priceDirection
+        };
+    });
+    
     res.json(result);
   } catch (err) {
     console.error('GET /api/markets error:', err);
@@ -137,31 +177,55 @@ app.get('/api/markets', async (req, res) => {
 // ─── GET /api/market/:pubkey ──────────────────────────────────────────────────
 app.get('/api/market/:pubkey', async (req, res) => {
   try {
-    const provider = getReadProvider();
-    const program = getProgram(provider);
+    const connection = getConnection();
     const marketPubkey = new PublicKey(req.params.pubkey);
-    const m = await program.account.market.fetch(marketPubkey);
+    const info = await connection.getAccountInfo(marketPubkey);
+    if (!info) return res.status(404).json({ error: "Market not found" });
 
+    let data = info.data;
+    let offset = 8;
+        
+    const creator = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+    const oracleType = data.readUInt8(offset); offset += 1;
+    const oracleAccount = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+    const targetPrice = data.readBigInt64LE(offset); offset += 8;
+    const priceDirection = data.readUInt8(offset); offset += 1;
+        
+    const questionLen = data.readUInt32LE(offset); offset += 4;
+    const question = data.slice(offset, offset + questionLen).toString('utf8'); offset += questionLen;
+        
+    const descLen = data.readUInt32LE(offset); offset += 4;
+    const description = data.slice(offset, offset + descLen).toString('utf8'); offset += descLen;
+        
+    const endTimestamp = data.readBigInt64LE(offset); offset += 8;
+    const resolutionTimestamp = data.readBigInt64LE(offset); offset += 8;
+        
+    const statusType = data.readUInt8(offset); offset += 1;
     let statusStr = "Active";
-    if (m.status.resolved) {
-      statusStr = "Resolved";
-    } else if (m.status.closed) {
-      statusStr = "Closed";
-    }
+    if (statusType === 1) statusStr = "Resolved";
+    else if (statusType === 2) statusStr = "Closed";
+        
+    const totalYes = data.readBigUInt64LE(offset); offset += 8;
+    const totalNo = data.readBigUInt64LE(offset); offset += 8;
+    
+    // vault read logic:
+    offset += 16; // skip totalFeesCollected and creatorFeeEarned
+    const yesVault = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+    const noVault = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
 
     res.json({
       pubkey: marketPubkey.toBase58(),
-      question: m.question,
-      description: m.description,
-      endTimestamp: m.endTimestamp.toNumber(),
+      question,
+      description,
+      endTimestamp: Number(endTimestamp),
       status: statusStr,
-      totalYes: m.totalYes.toString(),
-      totalNo: m.totalNo.toString(),
-      yesVault: m.yesVault.toBase58(),
-      noVault: m.noVault.toBase58(),
-      oracleType: m.oracleType,
-      targetPrice: m.targetPrice.toString(),
-      priceDirection: m.priceDirection,
+      totalYes: totalYes.toString(),
+      totalNo: totalNo.toString(),
+      yesVault: yesVault.toBase58(),
+      noVault: noVault.toBase58(),
+      oracleType,
+      targetPrice: targetPrice.toString(),
+      priceDirection,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -171,17 +235,36 @@ app.get('/api/market/:pubkey', async (req, res) => {
 // ─── GET /api/protocol ────────────────────────────────────────────────────────
 app.get('/api/protocol', async (req, res) => {
   try {
-    const provider = getReadProvider();
-    const program = getProgram(provider);
+    const connection = getConnection();
     const [protocolPDA] = deriveProtocolPDA();
-    const state = await program.account.protocolState.fetch(protocolPDA);
+    const info = await connection.getAccountInfo(protocolPDA);
+    if (!info) {
+      return res.json({
+         authority: AUTHORITY.toBase58(),
+         treasuryVault: AUTHORITY.toBase58(),
+         feeBps: 200,
+         totalFeesCollected: "0",
+         totalMarketsCreated: 0,
+         totalVolume: "0",
+      });
+    }
+
+    const data = info.data;
+    let offset = 8;
+    const authority = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+    const treasuryVault = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+    const feeBps = data.readUInt16LE(offset); offset += 2;
+    const totalFeesCollected = data.readBigUInt64LE(offset); offset += 8;
+    const totalMarketsCreated = data.readBigUInt64LE(offset); offset += 8;
+    const totalVolume = data.readBigUInt64LE(offset);
+
     res.json({
-      authority: state.authority.toBase58(),
-      treasuryVault: state.treasuryVault.toBase58(),
-      feeBps: state.feeBps,
-      totalFeesCollected: state.totalFeesCollected.toString(),
-      totalMarketsCreated: state.totalMarketsCreated.toNumber(),
-      totalVolume: state.totalVolume.toString(),
+      authority: authority.toBase58(),
+      treasuryVault: treasuryVault.toBase58(),
+      feeBps,
+      totalFeesCollected: totalFeesCollected.toString(),
+      totalMarketsCreated: Number(totalMarketsCreated),
+      totalVolume: totalVolume.toString(),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -441,39 +524,68 @@ app.post('/api/action/claim', async (req, res) => {
 // Returns all markets created by a given wallet, including earnings per market.
 app.get('/api/creator/:wallet', async (req, res) => {
   try {
-    const provider = getReadProvider();
-    const program = getProgram(provider);
+    const connection = getConnection();
     const creatorPubkey = new PublicKey(req.params.wallet);
 
-    const markets = await program.account.market.all([
-      {
-        memcmp: {
-          offset: 8, // skip discriminator (8 bytes), creator is first field
-          bytes: creatorPubkey.toBase58(),
-        },
-      },
-    ]);
+    const MARKET_DISCRIMINATOR = [219, 190, 213, 55, 0, 227, 198, 154];
+    const filters = [
+      { memcmp: { offset: 0, bytes: anchor.utils.bytes.bs58.encode(Buffer.from(MARKET_DISCRIMINATOR)) } },
+      { memcmp: { offset: 8, bytes: creatorPubkey.toBase58() } }
+    ];
 
-    const totalEarned = markets.reduce(
-      (sum, m) => sum + BigInt(m.account.creatorFeeEarned.toString()),
-      BigInt(0)
-    );
+    const accounts = await connection.getProgramAccounts(PROGRAM_ID, { filters });
 
-    const result = markets.map((m) => ({
-      pubkey: m.publicKey.toBase58(),
-      question: m.account.question,
-      endTimestamp: m.account.endTimestamp.toNumber(),
-      status: m.account.status,
-      totalYes: m.account.totalYes.toString(),
-      totalNo: m.account.totalNo.toString(),
-      totalFeesCollected: m.account.totalFeesCollected.toString(),
-      creatorFeeEarned: m.account.creatorFeeEarned.toString(),
-    }));
+    let totalEarned = BigInt(0);
+    const result = accounts.map(account => {
+        let data = account.account.data;
+        let offset = 8 + 32; // skip discriminator + creator pubkey
+        
+        const oracleType = data.readUInt8(offset); offset += 1;
+        const oracleAccount = new PublicKey(data.slice(offset, offset + 32)); offset += 32;
+        const targetPrice = data.readBigInt64LE(offset); offset += 8;
+        const priceDirection = data.readUInt8(offset); offset += 1;
+        
+        const questionLen = data.readUInt32LE(offset); offset += 4;
+        const question = data.slice(offset, offset + questionLen).toString('utf8'); offset += questionLen;
+        
+        const descLen = data.readUInt32LE(offset); offset += 4;
+        const description = data.slice(offset, offset + descLen).toString('utf8'); offset += descLen;
+        
+        const endTimestamp = data.readBigInt64LE(offset); offset += 8;
+        const resolutionTimestamp = data.readBigInt64LE(offset); offset += 8;
+        
+        const statusType = data.readUInt8(offset); offset += 1;
+        let statusObj = { active: {} };
+        if (statusType === 1) {
+             const outcome = data.readUInt8(offset) === 1; offset += 1;
+             statusObj = { resolved: { outcome } };
+        } else if (statusType === 2) {
+             statusObj = { closed: {} };
+        }
+        
+        const totalYes = data.readBigUInt64LE(offset); offset += 8;
+        const totalNo = data.readBigUInt64LE(offset); offset += 8;
+        const totalFeesCollected = data.readBigUInt64LE(offset); offset += 8;
+        const creatorFeeEarned = data.readBigUInt64LE(offset); offset += 8;
+
+        totalEarned += creatorFeeEarned;
+
+        return {
+          pubkey: account.pubkey.toBase58(),
+          question,
+          endTimestamp: Number(endTimestamp),
+          status: statusObj,
+          totalYes: totalYes.toString(),
+          totalNo: totalNo.toString(),
+          totalFeesCollected: totalFeesCollected.toString(),
+          creatorFeeEarned: creatorFeeEarned.toString(),
+        };
+    });
 
     res.json({
       creator: creatorPubkey.toBase58(),
       totalEarned: totalEarned.toString(),
-      marketsCount: markets.length,
+      marketsCount: accounts.length,
       markets: result,
     });
   } catch (err) {
