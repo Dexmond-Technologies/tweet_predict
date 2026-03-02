@@ -64,7 +64,7 @@ export default function MyMarketsPage() {
     useEffect(() => { fetchStats(); }, [fetchStats]);
 
     function shareBlink(market: CreatorMarket) {
-        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/tweetpredict';
+        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/tweetpredictsol';
         const blinkUrl = `${base}/api/action/bet?market=${market.pubkey}&question=${encodeURIComponent(market.question)}`;
         const tweetText = `🔮 Bet on: "${market.question}"\n\nUse D3X tokens. Direct from Twitter! 🚀\n\n${blinkUrl}`;
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
