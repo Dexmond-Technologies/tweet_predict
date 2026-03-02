@@ -1,6 +1,7 @@
 'use client';
 import { SolanaContext } from '../components/SolanaProvider';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -51,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                 }}>MAINNET</span>
                             </a>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <a href="/my-markets" style={{
+                                <Link href="/my-markets" style={{
                                     fontSize: '0.875rem',
                                     color: '#94a3b8',
                                     textDecoration: 'none',
@@ -60,17 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                 }}
                                     onMouseOver={e => (e.currentTarget.style.color = '#f9a8d4')}
                                     onMouseOut={e => (e.currentTarget.style.color = '#94a3b8')}
-                                >My Markets</a>
-                                <a href="/admin" style={{
-                                    fontSize: '0.875rem',
-                                    color: '#94a3b8',
-                                    textDecoration: 'none',
-                                    fontWeight: 600,
-                                    transition: 'color 0.2s',
-                                }}
-                                    onMouseOver={e => (e.currentTarget.style.color = '#7dd3fc')}
-                                    onMouseOut={e => (e.currentTarget.style.color = '#94a3b8')}
-                                >Admin</a>
+                                >My Markets</Link>
                                 <WalletMultiButton />
                             </div>
                         </header>

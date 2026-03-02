@@ -7,18 +7,26 @@ import dynamic from 'next/dynamic';
 
 const BetModal = dynamic(() => import('../components/BetModal'), { ssr: false });
 const WalletMultiButton = dynamic(async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton, { ssr: false });
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api.onrender.com';
 const D3X_DECIMALS = 1_000_000;
 
-
-
 const TAG_OPTIONS = ['Crypto', 'DeFi', 'Sports', 'Politics', 'Memes', 'Finance', 'Gaming', 'Other'];
 
-const CRITERIA_TEMPLATES = [
-    'BTC closing price on Binance > $200,000 on Dec 31, 2026 UTC per CoinGecko API',
-    'ETH price exceeds $10,000 at any point before market close, per CoinGecko',
-    'Team/candidate wins based on official announcement by the resolution date',
+
+
+const PYTH_FEEDS = [
+    { label: "SOL / USD", pubkey: "H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv" },
+    { label: "BTC / USD", pubkey: "GVXRSBjFk6e6J3NbHXkSnD19Z2ixaX5oQZhXm4Edb5V" },
+    { label: "ETH / USD", pubkey: "JBu1AL4obBcYWjzPKtD6gZ5K74h47QpXYG8Lg4bS96V8" },
+    { label: "USDC / USD", pubkey: "Gnt27xtC473ZT2Mw5u8wZ68Z3gEUcTNNZv59XnvSyMPB" },
+    { label: "USDT / USD", pubkey: "3vxLXJqLqF3JG5TCbYycbKWRBbCJQLxQmBcoahS5NnmN" },
+    { label: "BNB / USD", pubkey: "4CkQJBxhU8EZ2UjhigcqPdgYXQjAUNqE2EKSx3xRjYnB" },
+    { label: "ADA / USD", pubkey: "3pyn4svB5Y9C4tKFXFvD2kEpsgHjS9jV9s18e1EWeA1i" },
+    { label: "DOGE / USD", pubkey: "Boz7RBSns1Y9aGvQxX6p9tJ3eE8vD5jWjU4aLXZ2bN8U" },
+    { label: "XRP / USD", pubkey: "FCPvJ671xsq5iU25X2JAdpB5Y2GjU2gCh3Yn1w1G2U1u" },
+    { label: "AVAX / USD", pubkey: "E2wXb857mZJ8A6dD3XwV44hD4QyY7cZ6yP4tWgH2u5p3" },
+    { label: "MATIC / USD", pubkey: "72a5a51Z2a9w4JqRZYW3y4t6t3u2Q6tZ9a9g8Y5e4P5C" },
+    { label: "APT / USD", pubkey: "E1p2rZbXqL6mZ2XWgH4tQZ2X4aM6G4x8K4N5G3jS9q8y" }
 ];
 
 interface Market {
@@ -71,9 +79,9 @@ export default function Home() {
 
     // ── Creation form state ────────────────────────────────────────────
     const [question, setQuestion] = useState('');
-    const [criteria, setCriteria] = useState('');
+
     const [description, setDescription] = useState('');
-    const [oracleType, setOracleType] = useState('0'); // 0=Manual, 1=Pyth
+    const [oracleType, setOracleType] = useState('1'); // 1=Pyth
     const [oracleAccount, setOracleAccount] = useState('H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv'); // SOL/USD default
     const [targetPrice, setTargetPrice] = useState('');
     const [priceDirection, setPriceDirection] = useState('0'); // 0=Above, 1=Below
@@ -127,13 +135,11 @@ export default function Home() {
     async function handleCreate() {
         if (!publicKey) return setCreateMsg('Connect your wallet first');
         if (!question.trim()) return setCreateMsg('Enter a question');
-        if (!criteria.trim()) return setCreateMsg('Resolution criteria is required');
         if (question.length > 280) return setCreateMsg('Question too long (max 280 chars)');
         setCreateStatus('loading');
         setCreateMsg('Building transaction…');
-        // Pack tags + criteria into the description field
-        const tagLine = tags.length > 0 ? `[${tags.join(', ')}]` : '';
-        const fullDescription = `${tagLine}\n${criteria}`;
+        // Pack tags into the description field
+        const fullDescription = tags.length > 0 ? `[${tags.join(', ')}]` : '';
         try {
             const params = new URLSearchParams({ 
                 question, description: fullDescription, endDays,
@@ -155,8 +161,7 @@ export default function Home() {
             setCreateStatus('success');
             setCreateMsg('');
             setQuestion('');
-            setCriteria('');
-            setOracleType('0');
+
             setTargetPrice('');
             setTags([]);
             setEndDays('30');
@@ -244,6 +249,14 @@ export default function Home() {
                         </button>
                     </div>
                 </div>
+                
+                {/* NOTE TO CREATORS BANNER */}
+                <div style={{ maxWidth: '700px', margin: '2rem auto 0 auto', background: 'rgba(125,211,252,0.05)', border: '1px solid rgba(125,211,252,0.2)', borderRadius: '1rem', padding: '1.25rem', textAlign: 'left' }}>
+                    <p style={{ color: '#7dd3fc', fontSize: '0.95rem', fontWeight: 800, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>💡 NOTE TO CREATORS</p>
+                    <p style={{ color: '#e2e8f0', fontSize: '0.9rem', margin: 0, lineHeight: 1.6 }}>
+                        You <strong>do not</strong> need to buy or spend any D3X tokens to launch a market! It is completely free in terms of D3X. When you open a market, you only pay the standard Solana network fees (in SOL) for gas and account rent. In fact, you actually <strong>earn D3X</strong> by opening a market—the protocol automatically sends you 1% of the fees generated from every bet!
+                    </p>
+                </div>
             </div>
 
             {/* ── CREATE MARKET FORM ────────────────────── */}
@@ -285,26 +298,7 @@ export default function Home() {
                                     className="input-glass" style={{ resize: 'none', borderRadius: '0.75rem', fontSize: '0.9rem' }} />
                             </div>
 
-                            {/* Resolution Criteria */}
-                            <div style={{ marginBottom: '0.875rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '0.3rem' }}>
-                                    📋 How will this resolve?
-                                </label>
-                                <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.4rem', lineHeight: 1.5 }}>Describe what needs to happen for YES to win. Be as clear as you like — your followers will trust you more for it.</p>
-                                <textarea value={criteria} onChange={e => setCriteria(e.target.value)} rows={3}
-                                    placeholder="e.g. BTC closing price above $200,000 on Dec 31, 2026, per CoinGecko"
-                                    className="input-glass" style={{ resize: 'none', borderRadius: '0.75rem', fontSize: '0.85rem' }} />
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.5rem', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>💡 Try an example:</span>
-                                    {CRITERIA_TEMPLATES.map((t, i) => (
-                                        <button key={i} onClick={() => setCriteria(t)} style={{
-                                            fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '999px',
-                                            background: 'rgba(249,168,212,0.07)', border: '1px solid rgba(249,168,212,0.15)',
-                                            color: '#f9a8d4', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s',
-                                        }}>{['Crypto price', 'ETH price', 'Real world event'][i]}</button>
-                                    ))}
-                                </div>
-                            </div>
+
 
                             {/* Description */}
                             <div style={{ marginBottom: '0.875rem' }}>
@@ -324,37 +318,29 @@ export default function Home() {
                             {/* Oracle source */}
                             <div style={{ marginBottom: '0.875rem' }}>
                                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.3rem' }}>⚖️ Who decides the winner?</label>
-                                <select value={oracleType} onChange={e => setOracleType(e.target.value)}
-                                    style={{
-                                        width: '100%', padding: '0.6rem 0.875rem', borderRadius: '0.75rem',
-                                        background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)',
-                                        color: '#e2e8f0', fontSize: '0.875rem', outline: 'none', cursor: 'pointer',
-                                        appearance: 'none', fontFamily: 'inherit',
-                                        marginBottom: oracleType === '1' ? '1rem' : 0
-                                    }}>
-                                    <option value="0" style={{ background: '#0f172a' }}>Manual (Creator resolves)</option>
-                                    <option value="1" style={{ background: '#0f172a' }}>Pyth Price Feed (Decentralized)</option>
-                                </select>
-                                {oracleType === '1' ? (
-                                    <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.875rem', padding: '1rem', marginTop: '0.5rem' }}>
-                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Target Asset</label>
-                                        <select value={oracleAccount} onChange={e => setOracleAccount(e.target.value)} className="input-glass" style={{ marginBottom: '1rem', padding: '0.625rem', width: '100%' }}>
-                                            <option value="H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv" style={{ background: '#0f172a' }}>SOL / USD</option>
-                                            <option value="GVXRSBjFk6e6J3NbHXkSnD19Z2ixaX5oQZhXm4Edb5V" style={{ background: '#0f172a' }}>BTC / USD</option>
-                                            <option value="JBu1AL4obBcYWjzPKtD6gZ5K74h47QpXYG8Lg4bS96V8" style={{ background: '#0f172a' }}>ETH / USD</option>
+                                <div style={{
+                                    width: '100%', padding: '0.6rem 0.875rem', borderRadius: '0.75rem',
+                                    background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)',
+                                    color: '#e2e8f0', fontSize: '0.875rem', marginBottom: '1rem'
+                                }}>
+                                    Pyth Price Feed (Decentralized)
+                                </div>
+                                <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.875rem', padding: '1rem', marginTop: '0.5rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Target Asset</label>
+                                    <select value={oracleAccount} onChange={e => setOracleAccount(e.target.value)} className="input-glass" style={{ marginBottom: '1rem', padding: '0.625rem', width: '100%' }}>
+                                        {PYTH_FEEDS.map(feed => (
+                                            <option key={feed.pubkey} value={feed.pubkey} style={{ background: '#0f172a' }}>{feed.label}</option>
+                                        ))}
+                                    </select>
+                                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Resolution Condition (if price is)</label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <select value={priceDirection} onChange={e => setPriceDirection(e.target.value)} className="input-glass" style={{ flex: 1, padding: '0.625rem', width: '100%' }}>
+                                            <option value="0" style={{ background: '#0f172a' }}>&gt;= (Above or Equal)</option>
+                                            <option value="1" style={{ background: '#0f172a' }}>&lt; (Below)</option>
                                         </select>
-                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Resolution Condition (if price is)</label>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <select value={priceDirection} onChange={e => setPriceDirection(e.target.value)} className="input-glass" style={{ flex: 1, padding: '0.625rem', width: '100%' }}>
-                                                <option value="0" style={{ background: '#0f172a' }}>&gt;= (Above or Equal)</option>
-                                                <option value="1" style={{ background: '#0f172a' }}>&lt; (Below)</option>
-                                            </select>
-                                            <input type="number" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} placeholder="Target Price ($)" className="input-glass" style={{ flex: 1.5, padding: '0.625rem', width: '100%' }} />
-                                        </div>
+                                        <input type="number" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} placeholder="Target Price ($)" className="input-glass" style={{ flex: 1.5, padding: '0.625rem', width: '100%' }} />
                                     </div>
-                                ) : (
-                                    <p style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.35rem', lineHeight: 1.5 }}>You'll call the result when the event ends. Your followers trust your judgement!</p>
-                                )}
+                                </div>
                             </div>
 
                             {/* Duration */}
@@ -421,7 +407,7 @@ export default function Home() {
 
                             {publicKey ? (
                                 <button id="create-market-submit" onClick={handleCreate}
-                                    disabled={createStatus === 'loading' || !question.trim() || !criteria.trim()}
+                                    disabled={createStatus === 'loading' || !question.trim()}
                                     className="btn-primary" style={{ width: '100%', padding: '0.875rem', fontSize: '0.95rem' }}>
                                     {createStatus === 'loading' ? '⏳ Creating on Solana…' : '🚀 Create Market'}
                                 </button>
@@ -466,7 +452,7 @@ export default function Home() {
                                     <div style={{ padding: '0.875rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                                         <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>TweetPredict · Solana Blink</div>
                                         <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#e2e8f0', margin: 0, lineHeight: 1.4 }}>{question || 'Your question…'}</p>
-                                        {criteria && <p style={{ fontSize: '0.72rem', color: '#64748b', margin: '0.3rem 0 0 0', lineHeight: 1.4 }}>{criteria.slice(0, 80)}{criteria.length > 80 ? '…' : ''}</p>}
+
                                     </div>
                                     <div style={{ padding: '0.625rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
                                         <div style={{ padding: '0.5rem', borderRadius: '0.5rem', background: 'rgba(125,211,252,0.12)', border: '1px solid rgba(125,211,252,0.3)', textAlign: 'center', fontSize: '0.8rem', fontWeight: 800, color: '#7dd3fc' }}>✅ YES</div>
