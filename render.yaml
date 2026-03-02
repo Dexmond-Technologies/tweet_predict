@@ -2,8 +2,9 @@ services:
   - type: web
     name: tweetpredict-api
     env: node
-    buildCommand: "cd app/api && npm install"
-    startCommand: "cd app/api && npm start"
+    rootDir: "app/api"
+    buildCommand: "npm install"
+    startCommand: "npm start"
     envVars:
       - key: PORT
         value: 3001
