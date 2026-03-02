@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { TrendingUp, Share2, Coins, BarChart3, PlusCircle, Clock, Trophy } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api-1mpm.onrender.com';
 const D3X_DECIMALS = 1_000_000;
 
 interface CreatorMarket {

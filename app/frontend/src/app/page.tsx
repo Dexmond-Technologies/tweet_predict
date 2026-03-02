@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 
 const BetModal = dynamic(() => import('../components/BetModal'), { ssr: false });
 const WalletMultiButton = dynamic(async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton, { ssr: false });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api-1mpm.onrender.com';
 const D3X_DECIMALS = 1_000_000;
 
 const TAG_OPTIONS = ['Crypto', 'DeFi', 'Sports', 'Politics', 'Memes', 'Finance', 'Gaming', 'Other'];
