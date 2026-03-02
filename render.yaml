@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: tweetpredict-api
+    env: node
+    buildCommand: "cd app/api && npm install"
+    startCommand: "cd app/api && npm start"
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: SOLANA_NETWORK
+        value: mainnet-beta
+      - key: RENDER_SERVICE_ID
+        value: srv-d6idrfvkijhs7382csmg
