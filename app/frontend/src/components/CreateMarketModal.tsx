@@ -66,7 +66,7 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
     }
 
     function handleTweet() {
-        const base = typeof window !== 'undefined' ? window.location.origin : 'https://tweetpredict.app';
+        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/TweetPredict';
         const blinkUrl = marketPubkey
             ? `${base}/api/action/bet?market=${marketPubkey}&question=${encodeURIComponent(question)}`
             : `${base}/api/action/create`;
@@ -124,7 +124,7 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
                         </p>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,240,255,0.3)', borderRadius: '0.5rem', padding: '0.75rem', fontSize: '0.75rem', color: '#00f0ff', wordBreak: 'break-all', marginBottom: '1.5rem', userSelect: 'all', textAlign: 'left' }}>
-                        {typeof window !== 'undefined' ? window.location.origin : 'https://tweetpredict.app'}/api/action/bet?market={marketPubkey}&amp;question={encodeURIComponent(question)}
+                        {typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/TweetPredict'}/api/action/bet?market={marketPubkey}&amp;question={encodeURIComponent(question)}
                     </div>
                     <button onClick={onClose} style={{
                         width: '100%', padding: '0.75rem', borderRadius: '0.875rem',
