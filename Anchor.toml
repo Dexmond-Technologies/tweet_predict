@@ -5,7 +5,7 @@ skip-lint = false
 [programs.devnet]
 tweet_predict = "5pEnm6PoweBNFxjS8wTRUa63rn1ux8ab3ezsUjCV8UeR"
 
-[programs.mainnet-beta]
+[programs.mainnet]
 tweet_predict = "5pEnm6PoweBNFxjS8wTRUa63rn1ux8ab3ezsUjCV8UeR"
 
 [registry]

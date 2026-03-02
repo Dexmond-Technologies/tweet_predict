@@ -25,6 +25,11 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
     const [message, setMessage] = useState('');
     const [marketPubkey, setMarketPubkey] = useState('');
 
+    const [oracleType, setOracleType] = useState('0'); // 0=Manual, 1=Pyth
+    const [oracleAccount, setOracleAccount] = useState('H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv'); // SOL/USD default
+    const [targetPrice, setTargetPrice] = useState('');
+    const [priceDirection, setPriceDirection] = useState('0'); // 0=Above, 1=Below
+
     async function handleCreate() {
         if (!publicKey) return setMessage('Connect your wallet first');
         if (!question.trim()) return setMessage('Enter a question');
@@ -33,7 +38,10 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
         setStatus('loading');
         setMessage('Building transaction…');
         try {
-            const params = new URLSearchParams({ question, description, endDays }).toString();
+            const params = new URLSearchParams({ 
+                question, description, endDays, 
+                oracleType, oracleAccount, targetPrice: targetPrice || '0', priceDirection 
+            }).toString();
             const resp = await fetch(`${API_URL}/api/action/create?${params}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -169,6 +177,37 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
                     <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
                         placeholder="Add context or resolution criteria…"
                         className="input-glass" style={{ resize: 'none', borderRadius: '0.875rem' }} />
+                </div>
+
+                {/* Oracle Selection */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#f9a8d4', marginBottom: '0.5rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                        Who decides the winner?
+                    </label>
+                    <select value={oracleType} onChange={e => setOracleType(e.target.value)} className="input-glass" style={{ marginBottom: oracleType === '1' ? '1rem' : 0 }}>
+                        <option value="0" style={{ background: '#0f172a' }}>Manual (I will resolve it)</option>
+                        <option value="1" style={{ background: '#0f172a' }}>Pyth Price Feed (Decentralized)</option>
+                    </select>
+
+                    {oracleType === '1' && (
+                        <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.875rem', padding: '1rem', marginTop: '0.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Target Asset</label>
+                            <select value={oracleAccount} onChange={e => setOracleAccount(e.target.value)} className="input-glass" style={{ marginBottom: '1rem', padding: '0.625rem' }}>
+                                <option value="H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv" style={{ background: '#0f172a' }}>SOL / USD</option>
+                                <option value="GVXRSBjFk6e6J3NbHXkSnD19Z2ixaX5oQZhXm4Edb5V" style={{ background: '#0f172a' }}>BTC / USD</option>
+                                <option value="JBu1AL4obBcYWjzPKtD6gZ5K74h47QpXYG8Lg4bS96V8" style={{ background: '#0f172a' }}>ETH / USD</option>
+                            </select>
+
+                            <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Resolution Condition (if price is)</label>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <select value={priceDirection} onChange={e => setPriceDirection(e.target.value)} className="input-glass" style={{ flex: 1, padding: '0.625rem' }}>
+                                    <option value="0" style={{ background: '#0f172a' }}>&gt;= (Above or Equal)</option>
+                                    <option value="1" style={{ background: '#0f172a' }}>&lt; (Below)</option>
+                                </select>
+                                <input type="number" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} placeholder="Target Price ($)" className="input-glass" style={{ flex: 1.5, padding: '0.625rem' }} />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Duration */}

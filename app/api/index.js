@@ -123,6 +123,9 @@ app.get('/api/markets', async (req, res) => {
       creatorFeeEarned: m.account.creatorFeeEarned.toString(),
       yesVault: m.account.yesVault.toBase58(),
       noVault: m.account.noVault.toBase58(),
+      oracleType: m.account.oracleType,
+      targetPrice: m.account.targetPrice.toString(),
+      priceDirection: m.account.priceDirection,
     }));
     res.json(result);
   } catch (err) {
@@ -138,16 +141,27 @@ app.get('/api/market/:pubkey', async (req, res) => {
     const program = getProgram(provider);
     const marketPubkey = new PublicKey(req.params.pubkey);
     const m = await program.account.market.fetch(marketPubkey);
+
+    let statusStr = "Active";
+    if (m.status.resolved) {
+      statusStr = "Resolved";
+    } else if (m.status.closed) {
+      statusStr = "Closed";
+    }
+
     res.json({
       pubkey: marketPubkey.toBase58(),
       question: m.question,
       description: m.description,
       endTimestamp: m.endTimestamp.toNumber(),
-      status: m.status,
+      status: statusStr,
       totalYes: m.totalYes.toString(),
       totalNo: m.totalNo.toString(),
       yesVault: m.yesVault.toBase58(),
       noVault: m.noVault.toBase58(),
+      oracleType: m.oracleType,
+      targetPrice: m.targetPrice.toString(),
+      priceDirection: m.priceDirection,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -185,7 +199,7 @@ app.get('/api/action/create', (req, res) => {
       actions: [
         {
           label: 'Create Market',
-          href: '/api/action/create?question={question}&description={description}&endDays={endDays}',
+          href: '/api/action/create?question={question}&description={description}&endDays={endDays}&oracleType=0&oracleAccount=11111111111111111111111111111111&targetPrice=0&priceDirection=0',
           parameters: [
             { name: 'question', label: 'Question (e.g. Will BTC hit $200k?)', required: true },
             { name: 'description', label: 'Description (optional)', required: false },
@@ -202,6 +216,11 @@ app.post('/api/action/create', async (req, res) => {
   try {
     const { account } = req.body;
     const { question, description = '', endDays = 30 } = req.query;
+    
+    const oracleType = parseInt(req.query.oracleType || '0', 10);
+    const oracleAccount = new PublicKey(req.query.oracleAccount || '11111111111111111111111111111111');
+    const targetPrice = new anchor.BN(req.query.targetPrice || '0');
+    const priceDirection = parseInt(req.query.priceDirection || '0', 10);
 
     if (!account || !question) {
       return res.status(400).json({ error: 'Missing account or question' });
@@ -228,7 +247,7 @@ app.post('/api/action/create', async (req, res) => {
     const questionHash = Array.from(crypto.createHash('sha256').update(question).digest());
 
     const ix = await program.methods
-      .createMarket(questionHash, question, description, endTimestamp, resolutionWindow)
+      .createMarket(questionHash, question, description, endTimestamp, resolutionWindow, oracleType, oracleAccount, targetPrice, priceDirection)
       .accounts({
         protocolState: protocolPDA,
         market: marketPDA,

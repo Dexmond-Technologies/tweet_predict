@@ -37,6 +37,9 @@ interface Market {
     totalNo: string;
     yesVault: string;
     noVault: string;
+    oracleType?: number;
+    targetPrice?: string;
+    priceDirection?: number;
 }
 
 function pct(yes: string, no: string) {
@@ -478,7 +481,10 @@ export default function Home() {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span className={sl.cls}>{sl.label}</span>
                                         <div style={{ textAlign: 'right' }}>
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                                            <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.3rem', justifyItems: 'flex-end', justifyContent: 'flex-end' }}>
+                                                {m.oracleType === 1 && (
+                                                    <span style={{ background: '#7b68ee', color: '#fff', padding: '0.1rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800 }}>PYTH</span>
+                                                )}
                                                 <Clock size={11} />{timeLeft(m.endTimestamp)}
                                             </div>
                                             <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, marginTop: '0.15rem' }}>{totalD3x} D3X Pool</div>

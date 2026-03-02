@@ -1,503 +1,923 @@
 {
-    "version": "0.1.0",
+  "address": "5pEnm6PoweBNFxjS8wTRUa63rn1ux8ab3ezsUjCV8UeR",
+  "metadata": {
     "name": "tweet_predict",
-    "instructions": [
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "TweetPredict — Solana prediction markets powered by D3X tokens"
+  },
+  "instructions": [
+    {
+      "name": "claim_winnings",
+      "discriminator": [
+        161,
+        215,
+        24,
+        59,
+        14,
+        236,
+        242,
+        221
+      ],
+      "accounts": [
         {
-            "name": "initializeProtocol",
-            "accounts": [
-                {
-                    "name": "protocolState",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "treasuryVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "mint",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "authority",
-                    "isMut": true,
-                    "isSigner": true
-                },
-                {
-                    "name": "systemProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "tokenProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "rent",
-                    "isMut": false,
-                    "isSigner": false
-                }
-            ],
-            "args": [
-                {
-                    "name": "feeBps",
-                    "type": "u16"
-                }
-            ]
+          "name": "market",
+          "writable": true
         },
         {
-            "name": "updateFee",
-            "accounts": [
-                {
-                    "name": "protocolState",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "authority",
-                    "isMut": false,
-                    "isSigner": true
-                }
-            ],
-            "args": [
-                {
-                    "name": "newFeeBps",
-                    "type": "u16"
-                }
-            ]
-        },
-        {
-            "name": "withdrawTreasury",
-            "accounts": [
-                {
-                    "name": "protocolState",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "treasuryVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "ownerTokenAccount",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "authority",
-                    "isMut": false,
-                    "isSigner": true
-                },
-                {
-                    "name": "tokenProgram",
-                    "isMut": false,
-                    "isSigner": false
-                }
-            ],
-            "args": [
-                {
-                    "name": "amount",
-                    "type": "u64"
-                }
-            ]
-        },
-        {
-            "name": "createMarket",
-            "accounts": [
-                {
-                    "name": "protocolState",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "market",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "yesVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "noVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "mint",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "creator",
-                    "isMut": true,
-                    "isSigner": true
-                },
-                {
-                    "name": "systemProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "tokenProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "rent",
-                    "isMut": false,
-                    "isSigner": false
-                }
-            ],
-            "args": [
-                {
-                    "name": "questionHash",
-                    "type": {
-                        "array": [
-                            "u8",
-                            32
-                        ]
-                    }
-                },
-                {
-                    "name": "question",
-                    "type": "string"
-                },
-                {
-                    "name": "description",
-                    "type": "string"
-                },
-                {
-                    "name": "endTimestamp",
-                    "type": "i64"
-                },
-                {
-                    "name": "resolutionWindow",
-                    "type": "i64"
-                }
-            ]
-        },
-        {
-            "name": "placeBet",
-            "accounts": [
-                {
-                    "name": "protocolState",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "market",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "treasuryVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "position",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "userTokenAccount",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "yesVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "noVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "user",
-                    "isMut": true,
-                    "isSigner": true
-                },
-                {
-                    "name": "systemProgram",
-                    "isMut": false,
-                    "isSigner": false
-                },
-                {
-                    "name": "tokenProgram",
-                    "isMut": false,
-                    "isSigner": false
-                }
-            ],
-            "args": [
-                {
-                    "name": "side",
-                    "type": "bool"
-                },
-                {
-                    "name": "amount",
-                    "type": "u64"
-                }
-            ]
-        },
-        {
-            "name": "resolveMarket",
-            "accounts": [
-                {
-                    "name": "market",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "creator",
-                    "isMut": false,
-                    "isSigner": true
-                }
-            ],
-            "args": [
-                {
-                    "name": "outcome",
-                    "type": "bool"
-                }
-            ]
-        },
-        {
-            "name": "claimWinnings",
-            "accounts": [
-                {
-                    "name": "market",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "position",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "userTokenAccount",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "yesVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "noVault",
-                    "isMut": true,
-                    "isSigner": false
-                },
-                {
-                    "name": "user",
-                    "isMut": true,
-                    "isSigner": true
-                },
-                {
-                    "name": "tokenProgram",
-                    "isMut": false,
-                    "isSigner": false
-                }
-            ],
-            "args": []
-        }
-    ],
-    "accounts": [
-        {
-            "name": "ProtocolState",
-            "type": {
-                "kind": "struct",
-                "fields": [
-                    {
-                        "name": "authority",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "treasuryVault",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "feeBps",
-                        "type": "u16"
-                    },
-                    {
-                        "name": "totalFeesCollected",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "totalMarketsCreated",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "totalVolume",
-                        "type": "u64"
-                    }
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
                 ]
-            }
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
         },
         {
-            "name": "Market",
-            "type": {
-                "kind": "struct",
-                "fields": [
-                    {
-                        "name": "creator",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "question",
-                        "type": "string"
-                    },
-                    {
-                        "name": "description",
-                        "type": "string"
-                    },
-                    {
-                        "name": "endTimestamp",
-                        "type": "i64"
-                    },
-                    {
-                        "name": "resolutionTimestamp",
-                        "type": "i64"
-                    },
-                    {
-                        "name": "status",
-                        "type": {
-                            "defined": "MarketStatus"
-                        }
-                    },
-                    {
-                        "name": "totalYes",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "totalNo",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "totalFeesCollected",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "yesVault",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "noVault",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "mint",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "bump",
-                        "type": "u8"
-                    }
-                ]
-            }
+          "name": "user_token_account",
+          "writable": true
         },
         {
-            "name": "Position",
-            "type": {
-                "kind": "struct",
-                "fields": [
-                    {
-                        "name": "market",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "user",
-                        "type": "publicKey"
-                    },
-                    {
-                        "name": "yesAmount",
-                        "type": "u64"
-                    },
-                    {
-                        "name": "noAmount",
-                        "type": "u64"
-                    }
-                ]
-            }
+          "name": "yes_vault",
+          "writable": true
+        },
+        {
+          "name": "no_vault",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
-    ],
-    "types": [
+      ],
+      "args": []
+    },
+    {
+      "name": "create_market",
+      "discriminator": [
+        103,
+        226,
+        97,
+        235,
+        200,
+        188,
+        251,
+        254
+      ],
+      "accounts": [
         {
-            "name": "MarketStatus",
-            "type": {
-                "kind": "enum",
-                "variants": [
-                    {
-                        "name": "Active"
-                    },
-                    {
-                        "name": "Resolved",
-                        "fields": [
-                            {
-                                "name": "outcome",
-                                "type": "bool"
-                            }
-                        ]
-                    },
-                    {
-                        "name": "Challenged"
-                    }
+          "name": "protocol_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
                 ]
-            }
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "question_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "yes_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  121,
+                  101,
+                  115,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "no_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  111,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
         }
-    ],
-    "errors": [
+      ],
+      "args": [
         {
-            "code": 6000,
-            "name": "MarketNotActive",
-            "msg": "Market is not active"
+          "name": "_question_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
         },
         {
-            "code": 6001,
-            "name": "BettingClosed",
-            "msg": "Betting period has closed"
+          "name": "question",
+          "type": "string"
         },
         {
-            "code": 6002,
-            "name": "EndTimestampNotReached",
-            "msg": "End timestamp has not been reached yet"
+          "name": "description",
+          "type": "string"
         },
         {
-            "code": 6003,
-            "name": "MarketNotResolved",
-            "msg": "Market has not been resolved yet"
+          "name": "end_timestamp",
+          "type": "i64"
         },
         {
-            "code": 6004,
-            "name": "NoWinnings",
-            "msg": "No winnings to claim"
+          "name": "resolution_window",
+          "type": "i64"
         },
         {
-            "code": 6005,
-            "name": "FeeTooHigh",
-            "msg": "Fee exceeds maximum allowed (5%)"
+          "name": "oracle_type",
+          "type": "u8"
         },
         {
-            "code": 6006,
-            "name": "QuestionTooLong",
-            "msg": "Question exceeds 280 characters"
+          "name": "oracle_account",
+          "type": "pubkey"
         },
         {
-            "code": 6007,
-            "name": "ZeroAmount",
-            "msg": "Amount must be greater than zero"
+          "name": "target_price",
+          "type": "i64"
+        },
+        {
+          "name": "price_direction",
+          "type": "u8"
         }
-    ],
-    "metadata": {
-        "address": "5pEnm6PoweBNFxjS8wTRUa63rn1ux8ab3ezsUjCV8UeR"
+      ]
+    },
+    {
+      "name": "initialize_protocol",
+      "discriminator": [
+        188,
+        233,
+        252,
+        106,
+        134,
+        146,
+        202,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "protocol_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "oracle",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "place_bet",
+      "discriminator": [
+        222,
+        62,
+        67,
+        220,
+        63,
+        166,
+        126,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "protocol_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "docs": [
+            "The global treasury vault — receives the protocol's half of the fee"
+          ],
+          "writable": true
+        },
+        {
+          "name": "creator_vault",
+          "docs": [
+            "The market creator's D3X token account — receives the creator's half of the fee"
+          ],
+          "writable": true
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_token_account",
+          "writable": true
+        },
+        {
+          "name": "yes_vault",
+          "writable": true
+        },
+        {
+          "name": "no_vault",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "side",
+          "type": "bool"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "resolve_market",
+      "discriminator": [
+        155,
+        23,
+        80,
+        173,
+        46,
+        74,
+        23,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "resolver",
+          "signer": true,
+          "relations": [
+            "market"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "resolve_market_pyth",
+      "discriminator": [
+        167,
+        245,
+        72,
+        247,
+        251,
+        121,
+        87,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "pyth_oracle"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_fee",
+      "discriminator": [
+        232,
+        253,
+        195,
+        247,
+        148,
+        212,
+        73,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "protocol_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "protocol_state"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_treasury",
+      "discriminator": [
+        40,
+        63,
+        122,
+        158,
+        144,
+        216,
+        83,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "protocol_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "owner_token_account",
+          "docs": [
+            "The owner's personal D3X token account where fees are sent"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "protocol_state"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
+  ],
+  "accounts": [
+    {
+      "name": "Market",
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    },
+    {
+      "name": "ProtocolState",
+      "discriminator": [
+        33,
+        51,
+        173,
+        134,
+        35,
+        140,
+        195,
+        248
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MarketNotActive",
+      "msg": "Market is not active"
+    },
+    {
+      "code": 6001,
+      "name": "BettingClosed",
+      "msg": "Betting period has closed"
+    },
+    {
+      "code": 6002,
+      "name": "EndTimestampNotReached",
+      "msg": "End timestamp has not been reached yet"
+    },
+    {
+      "code": 6003,
+      "name": "MarketNotResolved",
+      "msg": "Market has not been resolved yet"
+    },
+    {
+      "code": 6004,
+      "name": "NoWinnings",
+      "msg": "No winnings to claim"
+    },
+    {
+      "code": 6005,
+      "name": "FeeTooHigh",
+      "msg": "Fee exceeds maximum allowed (5%)"
+    },
+    {
+      "code": 6006,
+      "name": "QuestionTooLong",
+      "msg": "Question exceeds 280 characters"
+    },
+    {
+      "code": 6007,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidOracleType",
+      "msg": "Invalid Oracle Type for this resolution method"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidOracleAccount",
+      "msg": "Invalid Oracle Account"
+    }
+  ],
+  "types": [
+    {
+      "name": "Market",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "resolver",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle_type",
+            "type": "u8"
+          },
+          {
+            "name": "oracle_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "target_price",
+            "type": "i64"
+          },
+          {
+            "name": "price_direction",
+            "type": "u8"
+          },
+          {
+            "name": "question",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "end_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "resolution_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MarketStatus"
+              }
+            }
+          },
+          {
+            "name": "total_yes",
+            "type": "u64"
+          },
+          {
+            "name": "total_no",
+            "type": "u64"
+          },
+          {
+            "name": "total_fees_collected",
+            "type": "u64"
+          },
+          {
+            "name": "creator_fee_earned",
+            "docs": [
+              "Cumulative D3X fees earned by the market creator (half of protocol fee)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "yes_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "no_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "PDA bump stored at creation for use in claim_winnings signer seeds"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Resolved",
+            "fields": [
+              {
+                "name": "outcome",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "Challenged"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "yes_amount",
+            "type": "u64"
+          },
+          {
+            "name": "no_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolState",
+      "docs": [
+        "Global protocol state — stores YOUR treasury config"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "The wallet that can withdraw fees & update settings (YOU)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle",
+            "docs": [
+              "The public key of the Oracle responsible for resolving all markets"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury_vault",
+            "docs": [
+              "The D3X token account that collects all fees"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_bps",
+            "docs": [
+              "Protocol fee in basis points (150 = 1.5%)"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "total_fees_collected",
+            "docs": [
+              "Running total of all fees collected (in D3X smallest unit)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_markets_created",
+            "docs": [
+              "Number of markets created on the platform"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_volume",
+            "docs": [
+              "Total betting volume in D3X"
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
 }

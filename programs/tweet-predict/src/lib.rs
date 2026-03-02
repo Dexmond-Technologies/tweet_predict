@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer, Mint};
+use pyth_sdk_solana::load_price_feed_from_account_info;
 
 declare_id!("5pEnm6PoweBNFxjS8wTRUa63rn1ux8ab3ezsUjCV8UeR");
 
@@ -77,12 +78,20 @@ pub mod tweet_predict {
         description: String,
         end_timestamp: i64,
         resolution_window: i64,
+        oracle_type: u8,
+        oracle_account: Pubkey,
+        target_price: i64,
+        price_direction: u8,
     ) -> Result<()> {
         require!(question.len() <= 280, ErrorCode::QuestionTooLong);
 
         let market = &mut ctx.accounts.market;
         market.creator = ctx.accounts.creator.key();
         market.resolver = ctx.accounts.protocol_state.oracle;
+        market.oracle_type = oracle_type;
+        market.oracle_account = oracle_account;
+        market.target_price = target_price;
+        market.price_direction = price_direction;
         market.question = question;
         market.description = description;
         market.end_timestamp = end_timestamp;
@@ -203,7 +212,7 @@ pub mod tweet_predict {
     }
 
     // ─────────────────────────────────────────────────
-    //  RESOLVE MARKET
+    //  RESOLVE MARKET (MANUAL)
     // ─────────────────────────────────────────────────
     pub fn resolve_market(ctx: Context<ResolveMarket>, outcome: bool) -> Result<()> {
         let market = &mut ctx.accounts.market;
@@ -211,6 +220,33 @@ pub mod tweet_predict {
 
         require!(market.status == MarketStatus::Active, ErrorCode::MarketNotActive);
         require!(clock.unix_timestamp >= market.end_timestamp, ErrorCode::EndTimestampNotReached);
+        require!(market.oracle_type == 0, ErrorCode::InvalidOracleType);
+
+        market.status = MarketStatus::Resolved { outcome };
+
+        Ok(())
+    }
+
+    // ─────────────────────────────────────────────────
+    //  RESOLVE MARKET (PYTH PRICE FEED)
+    // ─────────────────────────────────────────────────
+    pub fn resolve_market_pyth(ctx: Context<ResolveMarketPyth>) -> Result<()> {
+        let market = &mut ctx.accounts.market;
+        let clock = Clock::get()?;
+
+        require!(market.status == MarketStatus::Active, ErrorCode::MarketNotActive);
+        require!(clock.unix_timestamp >= market.end_timestamp, ErrorCode::EndTimestampNotReached);
+        require!(market.oracle_type == 1, ErrorCode::InvalidOracleType);
+        require!(ctx.accounts.pyth_oracle.key() == market.oracle_account, ErrorCode::InvalidOracleAccount);
+
+        let price_feed = load_price_feed_from_account_info(&ctx.accounts.pyth_oracle).map_err(|_| ErrorCode::InvalidOracleAccount)?;
+        let current_price = price_feed.get_price_unchecked().price;
+
+        let outcome = if market.price_direction == 0 { // 0 = Above, 1 = Below
+            current_price >= market.target_price
+        } else {
+            current_price < market.target_price
+        };
 
         market.status = MarketStatus::Resolved { outcome };
 
@@ -372,10 +408,7 @@ pub struct CreateMarket<'info> {
     #[account(
         init,
         payer = creator,
-        // +1 for bump field added to Market struct
-        // +8 for creator_fee_earned field added to Market struct
-        // +32 for resolver Pubkey
-        space = 8 + 32 + 32 + (4 + 280) + (4 + 500) + 8 + 8 + 1 + 8 + 8 + 8 + 8 + 32 + 32 + 32 + 1,
+        space = 2000, // Expanded space to support oracle parameters and future upgrades
         seeds = [b"market", question_hash.as_ref()],
         bump
     )]
@@ -447,6 +480,14 @@ pub struct ResolveMarket<'info> {
 }
 
 #[derive(Accounts)]
+pub struct ResolveMarketPyth<'info> {
+    #[account(mut)]
+    pub market: Account<'info, Market>,
+    /// CHECK: Validated inside instruction via pyth_sdk_solana
+    pub pyth_oracle: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
 pub struct ClaimWinnings<'info> {
     // Market identified by pubkey passed from client; seeds check removed to avoid stack overflow
     #[account(mut)]
@@ -496,6 +537,10 @@ pub struct ProtocolState {
 pub struct Market {
     pub creator: Pubkey,
     pub resolver: Pubkey,
+    pub oracle_type: u8,
+    pub oracle_account: Pubkey,
+    pub target_price: i64,
+    pub price_direction: u8,
     pub question: String,
     pub description: String,
     pub end_timestamp: i64,
@@ -550,4 +595,8 @@ pub enum ErrorCode {
     QuestionTooLong,
     #[msg("Amount must be greater than zero")]
     ZeroAmount,
+    #[msg("Invalid Oracle Type for this resolution method")]
+    InvalidOracleType,
+    #[msg("Invalid Oracle Account")]
+    InvalidOracleAccount,
 }
