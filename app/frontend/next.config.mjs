@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    basePath: '/TweetPredict',
+    basePath: '/tweetpredict',
     output: 'export',
     images: {
         unoptimized: true

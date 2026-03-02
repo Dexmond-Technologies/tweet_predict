@@ -3,6 +3,7 @@ import { SolanaContext } from '../components/SolanaProvider';
 import dynamic from 'next/dynamic';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 const WalletMultiButton = dynamic(
     async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton,
@@ -13,12 +14,12 @@ const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en">
+        <html lang="en" className="dark">
             <head>
                 <title>TweetPredict — Decentralized Prediction Markets on Solana</title>
                 <meta name="description" content="Bet with D3X tokens on viral events. Create markets, share as Blinks, settle on-chain. 100% permissionless." />
             </head>
-            <body className={inter.className} style={{ position: 'relative', zIndex: 0 }}>
+            <body className={`${inter.className} bg-[#060214] text-slate-50`} style={{ background: '#060214', backgroundColor: '#060214', position: 'relative', zIndex: 0 }}>
                 <SolanaContext>
                     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
                         {/* Header */}

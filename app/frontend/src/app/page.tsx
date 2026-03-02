@@ -118,7 +118,7 @@ export default function Home() {
     }
 
     function shareBlink(market: Market) {
-        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/TweetPredict';
+        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/tweetpredict';
         const blinkUrl = `${base}/api/action/bet?market=${market.pubkey}&question=${encodeURIComponent(market.question)}`;
         const tweetText = `🔮 Bet on: "${market.question}"\n\nUse D3X tokens — directly from Twitter! 🚀\n\n${blinkUrl}`;
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
@@ -168,7 +168,7 @@ export default function Home() {
     }
 
     function handleTweetNew() {
-        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/TweetPredict';
+        const base = typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/tweetpredict';
         const blinkUrl = newMarketPubkey
             ? `${base}/api/action/bet?market=${newMarketPubkey}&question=${encodeURIComponent(newMarketQuestion)}`
             : `${base}/api/action/create`;
@@ -262,7 +262,7 @@ export default function Home() {
                             </p>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,240,255,0.3)', borderRadius: '0.5rem', padding: '0.75rem', fontSize: '0.75rem', color: '#00f0ff', wordBreak: 'break-all', marginBottom: '1.5rem', userSelect: 'all' }}>
-                            {typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/TweetPredict'}/api/action/bet?market={newMarketPubkey}&amp;question={encodeURIComponent(newMarketQuestion)}
+                            {typeof window !== 'undefined' ? window.location.origin : 'https://dexmond-technologies.github.io/tweetpredict'}/api/action/bet?market={newMarketPubkey}&amp;question={encodeURIComponent(newMarketQuestion)}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                             <button onClick={() => setCreateStatus('idle')} style={{ padding: '0.75rem', borderRadius: '0.875rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: '#64748b', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}>Create Another</button>
