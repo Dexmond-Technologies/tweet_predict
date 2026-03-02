@@ -26,15 +26,17 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Inter", sans-serif;
+  color-scheme: dark; /* Force dark mode at browser level */
   background: radial-gradient(
     ellipse 120% 80% at 50% -10%,
     var(--bg-mid) 0%,
     var(--bg-start) 60%,
     var(--bg-end) 100%
-  );
-  background-attachment: fixed;
+  ) !important; /* Override tailwind white bg */
+  background-color: var(--bg-start) !important;
+  background-attachment: fixed !important;
   min-height: 100vh;
-  color: var(--text-main);
+  color: var(--text-main) !important;
 }
 
 /* Subtle animated background dots */
