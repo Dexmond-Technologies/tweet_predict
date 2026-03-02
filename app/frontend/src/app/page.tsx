@@ -6,6 +6,7 @@ import { TrendingUp, Share2, Trophy, Clock, Twitter, Calendar, Zap, ChevronDown,
 import dynamic from 'next/dynamic';
 
 const BetModal = dynamic(() => import('../components/BetModal'), { ssr: false });
+const WalletMultiButton = dynamic(async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton, { ssr: false });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api.onrender.com';
 const D3X_DECIMALS = 1_000_000;
@@ -223,11 +224,16 @@ export default function Home() {
                         <div style={{ background: 'rgba(125,211,252,0.07)', border: '1px solid rgba(125,211,252,0.15)', borderRadius: '0.875rem', padding: '0.75rem 1rem', fontSize: '0.9rem', color: '#7dd3fc', fontWeight: 600, marginBottom: '0.75rem', lineHeight: 1.5 }}>
                             "{newMarketQuestion}"
                         </div>
-                        <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Tweet it now — your followers can bet directly from their Twitter timeline.</p>
+                        <div style={{ background: 'rgba(255,0,255,0.08)', border: '1px solid rgba(255,0,255,0.3)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+                            <p style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>⚠️ Manual Twitter Share Required</p>
+                            <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0, lineHeight: 1.5 }}>
+                                Due to the high price of the Twitter API, automated posting is disabled. You must <strong>manually copy</strong> the link below and paste it into a new Tweet to share this market on your timeline:
+                            </p>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,240,255,0.3)', borderRadius: '0.5rem', padding: '0.75rem', fontSize: '0.75rem', color: '#00f0ff', wordBreak: 'break-all', marginBottom: '1.5rem', userSelect: 'all' }}>
+                            {typeof window !== 'undefined' ? window.location.origin : 'https://tweetpredict.app'}/api/action/bet?market={newMarketPubkey}&amp;question={encodeURIComponent(newMarketQuestion)}
+                        </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                            <button onClick={handleTweetNew} className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem' }}>
-                                <Twitter size={18} /> Tweet this Market to your Followers
-                            </button>
                             <button onClick={() => setCreateStatus('idle')} style={{ padding: '0.75rem', borderRadius: '0.875rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: '#64748b', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}>Create Another</button>
                         </div>
                     </div>
@@ -367,11 +373,20 @@ export default function Home() {
                                 </div>
                             )}
 
-                            <button id="create-market-submit" onClick={handleCreate}
-                                disabled={createStatus === 'loading' || !question.trim() || !criteria.trim()}
-                                className="btn-primary" style={{ width: '100%', padding: '0.875rem', fontSize: '0.95rem' }}>
-                                {createStatus === 'loading' ? '⏳ Creating on Solana…' : '🚀 Create Market'}
-                            </button>
+                            {publicKey ? (
+                                <button id="create-market-submit" onClick={handleCreate}
+                                    disabled={createStatus === 'loading' || !question.trim() || !criteria.trim()}
+                                    className="btn-primary" style={{ width: '100%', padding: '0.875rem', fontSize: '0.95rem' }}>
+                                    {createStatus === 'loading' ? '⏳ Creating on Solana…' : '🚀 Create Market'}
+                                </button>
+                            ) : (
+                                <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', padding: '1.5rem', textAlign: 'center' }}>
+                                    <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1rem' }}>Connect your wallet to launch a prediction market</p>
+                                    <div style={{ display: 'inline-block' }}>
+                                        <WalletMultiButton />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* RIGHT COLUMN: Live Blink Preview */}

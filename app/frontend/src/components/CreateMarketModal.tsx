@@ -4,6 +4,10 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Transaction } from '@solana/web3.js';
 import { X, Calendar, AlertCircle, Twitter } from 'lucide-react';
 
+import dynamic from 'next/dynamic';
+
+const WalletMultiButton = dynamic(async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton, { ssr: false });
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface Props {
@@ -105,12 +109,15 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
                         ))}
                     </div>
 
-                    <button onClick={handleTweet} className="btn-primary" style={{
-                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: '0.625rem', padding: '1rem', fontSize: '1.05rem', marginBottom: '0.75rem',
-                    }}>
-                        <Twitter size={20} /> Tweet this Market to your Followers
-                    </button>
+                    <div style={{ background: 'rgba(255,0,255,0.08)', border: '1px solid rgba(255,0,255,0.3)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+                        <p style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>⚠️ Manual Twitter Share Required</p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0, lineHeight: 1.5 }}>
+                            Due to the high price of the Twitter API, automated posting is disabled. You must <strong>manually copy</strong> the link below and paste it into a new Tweet to share this market on your timeline:
+                        </p>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,240,255,0.3)', borderRadius: '0.5rem', padding: '0.75rem', fontSize: '0.75rem', color: '#00f0ff', wordBreak: 'break-all', marginBottom: '1.5rem', userSelect: 'all', textAlign: 'left' }}>
+                        {typeof window !== 'undefined' ? window.location.origin : 'https://tweetpredict.app'}/api/action/bet?market={marketPubkey}&amp;question={encodeURIComponent(question)}
+                    </div>
                     <button onClick={onClose} style={{
                         width: '100%', padding: '0.75rem', borderRadius: '0.875rem',
                         background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
@@ -196,11 +203,20 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
                     </div>
                 )}
 
-                <button id="create-market-submit" onClick={handleCreate}
-                    disabled={status === 'loading' || !question.trim()}
-                    className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}>
-                    {status === 'loading' ? '⏳ Creating on Solana…' : '🚀 Create Market'}
-                </button>
+                {publicKey ? (
+                    <button id="create-market-submit" onClick={handleCreate}
+                        disabled={status === 'loading' || !question.trim()}
+                        className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}>
+                        {status === 'loading' ? '⏳ Creating on Solana…' : '🚀 Create Market'}
+                    </button>
+                ) : (
+                    <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', padding: '1.5rem', textAlign: 'center' }}>
+                        <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1rem' }}>Connect your wallet to launch a prediction market</p>
+                        <div style={{ display: 'inline-block' }}>
+                            <WalletMultiButton />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
