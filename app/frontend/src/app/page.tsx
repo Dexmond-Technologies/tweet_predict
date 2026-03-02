@@ -11,13 +11,7 @@ const WalletMultiButton = dynamic(async () => (await import('@solana/wallet-adap
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tweetpredict-api.onrender.com';
 const D3X_DECIMALS = 1_000_000;
 
-const ORACLES = [
-    { value: 'manual', label: 'Manual (Creator resolves)' },
-    { value: 'switchboard', label: 'Switchboard (Decentralized)' },
-    { value: 'pyth', label: 'Pyth (Price feeds)' },
-    { value: 'uma', label: 'UMA (Optimistic oracle)' },
-    { value: 'community', label: 'Community Vote' },
-];
+
 
 const TAG_OPTIONS = ['Crypto', 'DeFi', 'Sports', 'Politics', 'Memes', 'Finance', 'Gaming', 'Other'];
 
@@ -79,7 +73,10 @@ export default function Home() {
     const [question, setQuestion] = useState('');
     const [criteria, setCriteria] = useState('');
     const [description, setDescription] = useState('');
-    const [oracle, setOracle] = useState('manual');
+    const [oracleType, setOracleType] = useState('0'); // 0=Manual, 1=Pyth
+    const [oracleAccount, setOracleAccount] = useState('H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv'); // SOL/USD default
+    const [targetPrice, setTargetPrice] = useState('');
+    const [priceDirection, setPriceDirection] = useState('0'); // 0=Above, 1=Below
     const [tags, setTags] = useState<string[]>([]);
     const [endDays, setEndDays] = useState('30');
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -134,12 +131,14 @@ export default function Home() {
         if (question.length > 280) return setCreateMsg('Question too long (max 280 chars)');
         setCreateStatus('loading');
         setCreateMsg('Building transaction…');
-        // Pack oracle + tags + criteria into the description field
-        const oracleLabel = ORACLES.find(o => o.value === oracle)?.label || 'Manual';
+        // Pack tags + criteria into the description field
         const tagLine = tags.length > 0 ? `[${tags.join(', ')}]` : '';
-        const fullDescription = `[Oracle: ${oracleLabel}]${tagLine}\n${criteria}`;
+        const fullDescription = `${tagLine}\n${criteria}`;
         try {
-            const params = new URLSearchParams({ question, description: fullDescription, endDays }).toString();
+            const params = new URLSearchParams({ 
+                question, description: fullDescription, endDays,
+                oracleType, oracleAccount, targetPrice: targetPrice || '0', priceDirection 
+            }).toString();
             const resp = await fetch(`${API_URL}/api/action/create?${params}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -157,7 +156,8 @@ export default function Home() {
             setCreateMsg('');
             setQuestion('');
             setCriteria('');
-            setOracle('manual');
+            setOracleType('0');
+            setTargetPrice('');
             setTags([]);
             setEndDays('30');
             fetchMarkets();
@@ -296,19 +296,34 @@ export default function Home() {
                             {/* Oracle source */}
                             <div style={{ marginBottom: '0.875rem' }}>
                                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.3rem' }}>⚖️ Who decides the winner?</label>
-                                <select value={oracle} onChange={e => setOracle(e.target.value)}
+                                <select value={oracleType} onChange={e => setOracleType(e.target.value)}
                                     style={{
                                         width: '100%', padding: '0.6rem 0.875rem', borderRadius: '0.75rem',
                                         background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)',
                                         color: '#e2e8f0', fontSize: '0.875rem', outline: 'none', cursor: 'pointer',
                                         appearance: 'none', fontFamily: 'inherit',
+                                        marginBottom: oracleType === '1' ? '1rem' : 0
                                     }}>
-                                    {ORACLES.map(o => (
-                                        <option key={o.value} value={o.value} style={{ background: '#0f172a' }}>{o.label}</option>
-                                    ))}
+                                    <option value="0" style={{ background: '#0f172a' }}>Manual (Creator resolves)</option>
+                                    <option value="1" style={{ background: '#0f172a' }}>Pyth Price Feed (Decentralized)</option>
                                 </select>
-                                {oracle !== 'manual' ? (
-                                    <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.35rem', lineHeight: 1.5 }}>✨ Great choice! Automatic oracle resolution is coming in v2 — for now you'll resolve it manually.</p>
+                                {oracleType === '1' ? (
+                                    <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0.875rem', padding: '1rem', marginTop: '0.5rem' }}>
+                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Target Asset</label>
+                                        <select value={oracleAccount} onChange={e => setOracleAccount(e.target.value)} className="input-glass" style={{ marginBottom: '1rem', padding: '0.625rem', width: '100%' }}>
+                                            <option value="H6ARHf6YXhGYeQfUzQNGk6dF7bT4H7hNqNtzZ5oW5eBv" style={{ background: '#0f172a' }}>SOL / USD</option>
+                                            <option value="GVXRSBjFk6e6J3NbHXkSnD19Z2ixaX5oQZhXm4Edb5V" style={{ background: '#0f172a' }}>BTC / USD</option>
+                                            <option value="JBu1AL4obBcYWjzPKtD6gZ5K74h47QpXYG8Lg4bS96V8" style={{ background: '#0f172a' }}>ETH / USD</option>
+                                        </select>
+                                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Resolution Condition (if price is)</label>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <select value={priceDirection} onChange={e => setPriceDirection(e.target.value)} className="input-glass" style={{ flex: 1, padding: '0.625rem', width: '100%' }}>
+                                                <option value="0" style={{ background: '#0f172a' }}>&gt;= (Above or Equal)</option>
+                                                <option value="1" style={{ background: '#0f172a' }}>&lt; (Below)</option>
+                                            </select>
+                                            <input type="number" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} placeholder="Target Price ($)" className="input-glass" style={{ flex: 1.5, padding: '0.625rem', width: '100%' }} />
+                                        </div>
+                                    </div>
                                 ) : (
                                     <p style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.35rem', lineHeight: 1.5 }}>You'll call the result when the event ends. Your followers trust your judgement!</p>
                                 )}
@@ -441,7 +456,7 @@ export default function Home() {
                                     🏷 {tags.length > 0 ? tags.join(' · ') : 'No tags'}
                                 </span>
                                 <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(125,211,252,0.08)', border: '1px solid rgba(125,211,252,0.15)', color: '#64748b', fontWeight: 600 }}>
-                                    🔮 {ORACLES.find(o => o.value === oracle)?.label || 'Manual'}
+                                    🔮 {oracleType === '1' ? 'Pyth Price Feed (Decentralized)' : 'Manual'}
                                 </span>
                                 <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.18)', color: '#4ade80', fontWeight: 600 }}>
                                     📅 {endDays}d market
