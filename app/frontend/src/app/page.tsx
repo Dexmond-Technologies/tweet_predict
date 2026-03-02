@@ -216,6 +216,34 @@ export default function Home() {
                         </div>
                     ))}
                 </div>
+
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem', flexWrap: 'wrap' }}>
+                    <a href="https://raydium.io/swap/?position_tab=staked+RAY&inputMint=sol&outputMint=AGN8SrMCMEgiP1ghvPHa5VRf5rPFDSYVrGFyBGE1Cqpa" target="_blank" rel="noopener noreferrer" style={{
+                        padding: '0.75rem 1.5rem', borderRadius: '999px', fontWeight: 800, fontSize: '0.9rem',
+                        background: 'linear-gradient(135deg, rgba(82, 110, 255, 0.15), rgba(0, 222, 179, 0.15))',
+                        border: '1px solid rgba(0, 222, 179, 0.3)', color: '#00deb3', textDecoration: 'none',
+                        transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.5rem'
+                    }} onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(82, 110, 255, 0.25), rgba(0, 222, 179, 0.25))'} onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(82, 110, 255, 0.15), rgba(0, 222, 179, 0.15))'}>
+                        Buy on Raydium
+                    </a>
+                    <a href="http://jup.ag/tokens/AGN8SrMCMEgiP1ghvPHa5VRf5rPFDSYVrGFyBGE1Cqpa" target="_blank" rel="noopener noreferrer" style={{
+                        padding: '0.75rem 1.5rem', borderRadius: '999px', fontWeight: 800, fontSize: '0.9rem',
+                        background: 'rgba(199, 242, 132, 0.15)',
+                        border: '1px solid rgba(199, 242, 132, 0.3)', color: '#c7f284', textDecoration: 'none',
+                        transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.5rem'
+                    }} onMouseOver={e => e.currentTarget.style.background = 'rgba(199, 242, 132, 0.25)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(199, 242, 132, 0.15)'}>
+                        Buy on Jupiter
+                    </a>
+                </div>
+                <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem 0' }}>D3X Smart Contract</p>
+                    <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontFamily: 'monospace' }}>AGN8SrMCMEgiP1ghvPHa5VRf5rPFDSYVrGFyBGE1Cqpa</span>
+                        <button onClick={() => { navigator.clipboard.writeText('AGN8SrMCMEgiP1ghvPHa5VRf5rPFDSYVrGFyBGE1Cqpa'); alert('Copied address!') }} style={{ background: 'none', border: 'none', color: '#7dd3fc', cursor: 'pointer', outline: 'none', padding: 0, display: 'flex', alignItems: 'center' }} title="Copy Address">
+                            📋
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* ── CREATE MARKET FORM ────────────────────── */}
