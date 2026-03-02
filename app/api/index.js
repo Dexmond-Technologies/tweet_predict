@@ -36,26 +36,24 @@ const PROGRAM_ID = new PublicKey('5pEnm6PoweBNFxjS8wTRUa63rn1ux8ab3ezsUjCV8UeR')
 const D3X_MINT = new PublicKey('AGN8SrMCMEgiP1ghvPHa5VRf5rPFDSYVrGFyBGE1Cqpa');
 const AUTHORITY = new PublicKey('436RdD2mVZQedoe9yQUwyzorJrjSWqbQHtmWrhducnUe');
 const NETWORK = process.env.SOLANA_NETWORK || 'devnet';
-const RPC_URL = process.env.RPC_URL || clusterApiUrl(NETWORK);
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
+// ─── UTILS ────────────────────────────────────────────────────────────────────
 function getConnection() {
-  return new Connection(RPC_URL, 'confirmed');
+  return new Connection(
+    process.env.SOLANA_NETWORK === 'mainnet-beta' ? clusterApiUrl('mainnet-beta') : clusterApiUrl('devnet'),
+    'confirmed'
+  );
 }
 
 /** Read-only Anchor provider (no wallet needed for fetching) */
 function getReadProvider() {
   const connection = getConnection();
-  return new anchor.AnchorProvider(connection, {
+  const dummyWallet = {
     publicKey: AUTHORITY,
-    signTransaction: async (tx) => tx,
-    signAllTransactions: async (txs) => txs,
-  }, { commitment: 'confirmed' });
-}
-
-function getProgram(provider) {
-  return new anchor.Program(idl, PROGRAM_ID, provider);
+    signTransaction: async () => { throw new Error('Ready only'); },
+    signAllTransactions: async () => { throw new Error('Ready only'); },
+  };
+  return new anchor.AnchorProvider(connection, dummyWallet, { commitment: 'confirmed' });
 }
 
 /** Derive market PDA from question hash (sha256) — matches the on-chain derivation */
@@ -311,12 +309,6 @@ app.post('/api/action/create', async (req, res) => {
 
     const user = new PublicKey(account);
     const connection = getConnection();
-    const provider = new anchor.AnchorProvider(connection, {
-      publicKey: user,
-      signTransaction: async (tx) => tx,
-      signAllTransactions: async (txs) => txs,
-    }, { commitment: 'confirmed' });
-    const program = getProgram(provider);
 
     const endTimestamp = new anchor.BN(
       Math.floor(Date.now() / 1000) + parseInt(endDays) * 86400
@@ -329,20 +321,34 @@ app.post('/api/action/create', async (req, res) => {
 
     const questionHash = Array.from(crypto.createHash('sha256').update(question).digest());
 
-    const ix = await program.methods
-      .createMarket(questionHash, question, description, endTimestamp, oracleType, oracleAccount, targetPrice, priceDirection)
-      .accounts({
-        protocolState: protocolPDA,
-        market: marketPDA,
-        yesVault,
-        noVault,
-        mint: D3X_MINT,
-        creator: user,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      })
-      .instruction();
+    const coder = new anchor.BorshInstructionCoder(idl);
+    const data = coder.encode('createMarket', {
+      questionHash,
+      question,
+      description,
+      endTimestamp,
+      resolutionWindow,
+      oracleType,
+      oracleAccount,
+      targetPrice,
+      priceDirection
+    });
+
+    const ix = new anchor.web3.TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: protocolPDA, isSigner: false, isWritable: true },
+        { pubkey: marketPDA, isSigner: false, isWritable: true },
+        { pubkey: yesVault, isSigner: false, isWritable: true },
+        { pubkey: noVault, isSigner: false, isWritable: true },
+        { pubkey: D3X_MINT, isSigner: false, isWritable: false },
+        { pubkey: user, isSigner: true, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: anchor.web3.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+      ],
+      data
+    });
 
     const transaction = new Transaction().add(ix);
     transaction.feePayer = user;
@@ -399,12 +405,6 @@ app.post('/api/action/bet', async (req, res) => {
     const user = new PublicKey(account);
     const marketPubkey = new PublicKey(marketPubkeyStr);
     const connection = getConnection();
-    const provider = new anchor.AnchorProvider(connection, {
-      publicKey: user,
-      signTransaction: async (tx) => tx,
-      signAllTransactions: async (txs) => txs,
-    }, { commitment: 'confirmed' });
-    const program = getProgram(provider);
 
     const betSide = side.toLowerCase() === 'yes';
     const betAmount = new anchor.BN(Math.floor(parseFloat(amount) * 1_000_000)); // 6 decimals
@@ -415,26 +415,33 @@ app.post('/api/action/bet', async (req, res) => {
     const [positionPDA] = derivePositionPDA(marketPubkey, user);
     const userTokenAccount = await getAssociatedTokenAddress(D3X_MINT, user);
 
-    // Fetch market to get creator pubkey, then derive creator's ATA for the fee split
-    const marketAccount = await program.account.market.fetch(marketPubkey);
-    const creatorVault = await getAssociatedTokenAddress(D3X_MINT, marketAccount.creator);
+    // Fetch market to get creator pubkey directly from buffer
+    const marketInfo = await connection.getAccountInfo(marketPubkey);
+    if (!marketInfo) return res.status(404).json({ error: "Market not found" });
+    const creatorPubkey = new PublicKey(marketInfo.data.slice(8, 40));
+    
+    const creatorVault = await getAssociatedTokenAddress(D3X_MINT, creatorPubkey);
 
-    const ix = await program.methods
-      .placeBet(betSide, betAmount)
-      .accounts({
-        protocolState: protocolPDA,
-        market: marketPubkey,
-        treasuryVault,
-        creatorVault,
-        position: positionPDA,
-        userTokenAccount,
-        yesVault,
-        noVault,
-        user,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .instruction();
+    const coder = new anchor.BorshInstructionCoder(idl);
+    const data = coder.encode('placeBet', { side: betSide, amount: betAmount });
+
+    const ix = new anchor.web3.TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: protocolPDA, isSigner: false, isWritable: true },
+        { pubkey: marketPubkey, isSigner: false, isWritable: true },
+        { pubkey: treasuryVault, isSigner: false, isWritable: true },
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
+        { pubkey: positionPDA, isSigner: false, isWritable: true },
+        { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: yesVault, isSigner: false, isWritable: true },
+        { pubkey: noVault, isSigner: false, isWritable: true },
+        { pubkey: user, isSigner: true, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      ],
+      data
+    });
 
     const transaction = new Transaction().add(ix);
     transaction.feePayer = user;
@@ -482,29 +489,27 @@ app.post('/api/action/claim', async (req, res) => {
     const user = new PublicKey(account);
     const marketPubkey = new PublicKey(marketPubkeyStr);
     const connection = getConnection();
-    const provider = new anchor.AnchorProvider(connection, {
-      publicKey: user,
-      signTransaction: async (tx) => tx,
-      signAllTransactions: async (txs) => txs,
-    }, { commitment: 'confirmed' });
-    const program = getProgram(provider);
 
     const { yesVault, noVault } = deriveVaultPDAs(marketPubkey);
     const [positionPDA] = derivePositionPDA(marketPubkey, user);
     const userTokenAccount = await getAssociatedTokenAddress(D3X_MINT, user);
 
-    const ix = await program.methods
-      .claimWinnings()
-      .accounts({
-        market: marketPubkey,
-        position: positionPDA,
-        userTokenAccount,
-        yesVault,
-        noVault,
-        user,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .instruction();
+    const coder = new anchor.BorshInstructionCoder(idl);
+    const data = coder.encode('claimWinnings', {});
+
+    const ix = new anchor.web3.TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: marketPubkey, isSigner: false, isWritable: true },
+        { pubkey: positionPDA, isSigner: false, isWritable: true },
+        { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: yesVault, isSigner: false, isWritable: true },
+        { pubkey: noVault, isSigner: false, isWritable: true },
+        { pubkey: user, isSigner: true, isWritable: true },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      ],
+      data
+    });
 
     const transaction = new Transaction().add(ix);
     transaction.feePayer = user;
@@ -606,28 +611,26 @@ app.post('/api/action/withdraw', async (req, res) => {
     }
 
     const connection = getConnection();
-    const provider = new anchor.AnchorProvider(connection, {
-      publicKey: user,
-      signTransaction: async (tx) => tx,
-      signAllTransactions: async (txs) => txs,
-    }, { commitment: 'confirmed' });
-    const program = getProgram(provider);
 
     const [protocolPDA] = deriveProtocolPDA();
     const [treasuryVault] = deriveTreasuryPDA();
     const ownerTokenAccount = await getAssociatedTokenAddress(D3X_MINT, user);
     const withdrawAmount = new anchor.BN(Math.floor(parseFloat(amount) * 1_000_000));
 
-    const ix = await program.methods
-      .withdrawTreasury(withdrawAmount)
-      .accounts({
-        protocolState: protocolPDA,
-        treasuryVault,
-        ownerTokenAccount,
-        authority: user,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .instruction();
+    const coder = new anchor.BorshInstructionCoder(idl);
+    const data = coder.encode('withdrawTreasury', { amount: withdrawAmount });
+
+    const ix = new anchor.web3.TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: protocolPDA, isSigner: false, isWritable: true },
+        { pubkey: treasuryVault, isSigner: false, isWritable: true },
+        { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: user, isSigner: true, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      ],
+      data
+    });
 
     const transaction = new Transaction().add(ix);
     transaction.feePayer = user;

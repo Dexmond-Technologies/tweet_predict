@@ -607,7 +607,90 @@
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracleType",
+            "type": "u8"
+          },
+          {
+            "name": "oracleAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "targetPrice",
+            "type": "i64"
+          },
+          {
+            "name": "priceDirection",
+            "type": "u8"
+          },
+          {
+            "name": "question",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "endTimestamp",
+            "type": "i64"
+          },
+          {
+            "name": "resolutionTimestamp",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "marketStatus"
+              }
+            }
+          },
+          {
+            "name": "totalYes",
+            "type": "u64"
+          },
+          {
+            "name": "totalNo",
+            "type": "u64"
+          },
+          {
+            "name": "totalFeesCollected",
+            "type": "u64"
+          },
+          {
+            "name": "creatorFeeEarned",
+            "docs": [
+              "Cumulative D3X fees earned by the market creator (half of protocol fee)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "yesVault",
+            "type": "pubkey"
+          },
+          {
+            "name": "noVault",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "PDA bump stored at creation for use in claim_winnings signer seeds"
+            ],
+            "type": "u8"
+          }
+        ]
       }
     },
     {
@@ -624,7 +707,24 @@
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "yesAmount",
+            "type": "u64"
+          },
+          {
+            "name": "noAmount",
+            "type": "u64"
+          }
+        ]
       }
     },
     {
@@ -641,7 +741,57 @@
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "The wallet that can withdraw fees & update settings (YOU)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle",
+            "docs": [
+              "The public key of the Oracle responsible for resolving all markets"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "treasuryVault",
+            "docs": [
+              "The D3X token account that collects all fees"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "feeBps",
+            "docs": [
+              "Protocol fee in basis points (150 = 1.5%)"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "totalFeesCollected",
+            "docs": [
+              "Running total of all fees collected (in D3X smallest unit)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalMarketsCreated",
+            "docs": [
+              "Number of markets created on the platform"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalVolume",
+            "docs": [
+              "Total betting volume in D3X"
+            ],
+            "type": "u64"
+          }
+        ]
       }
     }
   ],
