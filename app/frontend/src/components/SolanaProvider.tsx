@@ -1,7 +1,15 @@
 import React, { useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { 
+    PhantomWalletAdapter, 
+    SolflareWalletAdapter,
+    MathWalletAdapter,
+    TorusWalletAdapter,
+    LedgerWalletAdapter,
+    CoinbaseWalletAdapter,
+    TrustWalletAdapter
+} from '@solana/wallet-adapter-wallets';
 import {
     WalletModalProvider,
     WalletDisconnectButton,
@@ -14,7 +22,7 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 export const SolanaContext = ({ children }: { children: React.ReactNode }) => {
     // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-    const network = WalletAdapterNetwork.Devnet;
+    const network = WalletAdapterNetwork.Mainnet;
 
     // You can also provide a custom RPC endpoint.
     const endpoint = useMemo(() => clusterApiUrl(network), [network]);
@@ -23,6 +31,11 @@ export const SolanaContext = ({ children }: { children: React.ReactNode }) => {
         () => [
             new PhantomWalletAdapter(),
             new SolflareWalletAdapter(),
+            new CoinbaseWalletAdapter(),
+            new TorusWalletAdapter(),
+            new LedgerWalletAdapter(),
+            new MathWalletAdapter(),
+            new TrustWalletAdapter(),
         ],
         []
     );

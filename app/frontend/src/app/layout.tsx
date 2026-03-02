@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                     padding: '0.2rem 0.6rem',
                                     letterSpacing: '0.08em',
                                     textTransform: 'uppercase',
-                                }}>DEVNET</span>
+                                }}>MAINNET</span>
                             </a>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <a href="/my-markets" style={{

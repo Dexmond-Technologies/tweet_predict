@@ -188,7 +188,7 @@ export default function Home() {
                     fontSize: '0.8rem', fontWeight: 700, color: '#7dd3fc', letterSpacing: '0.06em',
                 }}>
                     <span style={{ width: 7, height: 7, background: '#4ade80', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 8px #4ade80' }} />
-                    LIVE ON SOLANA DEVNET
+                    LIVE ON SOLANA MAINNET
                 </div>
 
                 <h1 style={{ fontSize: 'clamp(2.8rem, 6vw, 5rem)', fontWeight: 900, lineHeight: 1.1, margin: '0 0 1rem 0', letterSpacing: '-0.02em' }}>
