@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             padding: '1rem 1.75rem',
                             margin: '1.5rem 0 2.5rem 0',
                         }}>
-                            <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <span style={{
                                     fontSize: '1.5rem',
                                     fontWeight: 900,
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                     letterSpacing: '0.08em',
                                     textTransform: 'uppercase',
                                 }}>MAINNET</span>
-                            </a>
+                            </Link>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <Link href="/my-markets" style={{
                                     fontSize: '0.875rem',

@@ -2,6 +2,7 @@
 const nextConfig = {
     reactStrictMode: true,
     basePath: '/tweetpredict',
+    trailingSlash: true,
     output: 'export',
     images: {
         unoptimized: true
