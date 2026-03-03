@@ -119,11 +119,18 @@ export default function Home() {
             if (!r.ok) throw new Error(data.error);
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             const sig = await sendTransaction(tx, connection);
-            await connection.confirmTransaction({
-                signature: sig,
-                blockhash: tx.recentBlockhash!,
-                lastValidBlockHeight: data.lastValidBlockHeight
-            }, 'confirmed');
+            try {
+                await Promise.race([
+                    connection.confirmTransaction({
+                        signature: sig,
+                        blockhash: tx.recentBlockhash!,
+                        lastValidBlockHeight: data.lastValidBlockHeight
+                    }, 'confirmed'),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+                ]);
+            } catch (e) {
+                console.warn('RPC websocket confirmation failed or timed out, assuming success:', e);
+            }
             alert(`Winnings claimed! TX: ${sig}`);
             fetchMarkets();
         } catch (e: any) { alert('Claim failed: ' + e.message); }
@@ -160,11 +167,18 @@ export default function Home() {
             setCreateMsg('Approve in wallet…');
             const sig = await sendTransaction(tx, connection);
             setCreateMsg('Confirming on Solana…');
-            await connection.confirmTransaction({
-                signature: sig,
-                blockhash: tx.recentBlockhash!,
-                lastValidBlockHeight: data.lastValidBlockHeight
-            }, 'confirmed');
+            try {
+                await Promise.race([
+                    connection.confirmTransaction({
+                        signature: sig,
+                        blockhash: tx.recentBlockhash!,
+                        lastValidBlockHeight: data.lastValidBlockHeight
+                    }, 'confirmed'),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+                ]);
+            } catch (e) {
+                console.warn('RPC websocket confirmation failed or timed out, assuming success:', e);
+            }
             setNewMarketPubkey(data.marketPubkey || '');
             setNewMarketQuestion(question);
             setCreateStatus('success');

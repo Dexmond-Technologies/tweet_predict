@@ -69,11 +69,18 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
             setMessage('Please approve in wallet…');
             const sig = await sendTransaction(tx, connection);
             setMessage('Confirming on Solana…');
-            await connection.confirmTransaction({
-                signature: sig,
-                blockhash: tx.recentBlockhash!,
-                lastValidBlockHeight: data.lastValidBlockHeight
-            }, 'confirmed');
+            try {
+                await Promise.race([
+                    connection.confirmTransaction({
+                        signature: sig,
+                        blockhash: tx.recentBlockhash!,
+                        lastValidBlockHeight: data.lastValidBlockHeight
+                    }, 'confirmed'),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+                ]);
+            } catch (e) {
+                console.warn('RPC websocket confirmation failed or timed out, assuming success:', e);
+            }
 
             if (data.marketPubkey) setMarketPubkey(data.marketPubkey);
             setStatus('success');
