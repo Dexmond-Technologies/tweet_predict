@@ -59,11 +59,10 @@ export default function BetModal({ market, onClose, onSuccess }: BetModalProps) 
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             setMessage('Please approve in wallet…');
             const sig = await sendTransaction(tx, connection);
-            const latestBlockhash = await connection.getLatestBlockhash('confirmed');
             await connection.confirmTransaction({
                 signature: sig,
-                blockhash: latestBlockhash.blockhash,
-                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+                blockhash: tx.recentBlockhash!,
+                lastValidBlockHeight: data.lastValidBlockHeight
             }, 'confirmed');
 
             setStatus('success');

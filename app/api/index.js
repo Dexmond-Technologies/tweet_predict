@@ -6,6 +6,7 @@ const {
   Transaction,
   clusterApiUrl,
   SystemProgram,
+  ComputeBudgetProgram,
 } = require('@solana/web3.js');
 const anchor = require('@coral-xyz/anchor');
 const { createActionHeaders } = { createActionHeaders: () => ({}) }; // unused stub
@@ -356,13 +357,18 @@ app.post('/api/action/create', async (req, res) => {
       data
     });
 
-    const transaction = new Transaction().add(ix);
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ units: 300000 });
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200000 });
+    const transaction = new Transaction().add(modifyComputeUnits).add(addPriorityFee).add(ix);
     transaction.feePayer = user;
-    transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    
+    const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+    transaction.recentBlockhash = latestBlockhash.blockhash;
 
     const serialized = transaction.serialize({ requireAllSignatures: false }).toString('base64');
     res.json({
       transaction: serialized,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
       marketPubkey: marketPDA.toBase58(),
       message: `Creating market: "${question}" — closes in ${endDays} days`,
     });
@@ -449,12 +455,16 @@ app.post('/api/action/bet', async (req, res) => {
       data
     });
 
-    const transaction = new Transaction().add(ix);
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200000 });
+    const transaction = new Transaction().add(addPriorityFee).add(ix);
     transaction.feePayer = user;
-    transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    
+    const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+    transaction.recentBlockhash = latestBlockhash.blockhash;
 
     res.json({
       transaction: transaction.serialize({ requireAllSignatures: false }).toString('base64'),
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
       message: `Betting ${amount} D3X on ${side.toUpperCase()}`,
     });
   } catch (err) {
@@ -517,12 +527,16 @@ app.post('/api/action/claim', async (req, res) => {
       data
     });
 
-    const transaction = new Transaction().add(ix);
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200000 });
+    const transaction = new Transaction().add(addPriorityFee).add(ix);
     transaction.feePayer = user;
-    transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    
+    const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+    transaction.recentBlockhash = latestBlockhash.blockhash;
 
     res.json({
       transaction: transaction.serialize({ requireAllSignatures: false }).toString('base64'),
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
       message: 'Claiming your D3X winnings',
     });
   } catch (err) {
@@ -638,12 +652,16 @@ app.post('/api/action/withdraw', async (req, res) => {
       data
     });
 
-    const transaction = new Transaction().add(ix);
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200000 });
+    const transaction = new Transaction().add(addPriorityFee).add(ix);
     transaction.feePayer = user;
-    transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    
+    const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+    transaction.recentBlockhash = latestBlockhash.blockhash;
 
     res.json({
       transaction: transaction.serialize({ requireAllSignatures: false }).toString('base64'),
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
       message: `Withdrawing ${amount} D3X from treasury to your wallet`,
     });
   } catch (err) {

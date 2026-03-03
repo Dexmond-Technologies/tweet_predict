@@ -119,11 +119,10 @@ export default function Home() {
             if (!r.ok) throw new Error(data.error);
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             const sig = await sendTransaction(tx, connection);
-            const latestBlockhash = await connection.getLatestBlockhash('confirmed');
             await connection.confirmTransaction({
                 signature: sig,
-                blockhash: latestBlockhash.blockhash,
-                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+                blockhash: tx.recentBlockhash!,
+                lastValidBlockHeight: data.lastValidBlockHeight
             }, 'confirmed');
             alert(`Winnings claimed! TX: ${sig}`);
             fetchMarkets();
@@ -160,11 +159,10 @@ export default function Home() {
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             setCreateMsg('Approve in wallet…');
             const sig = await sendTransaction(tx, connection);
-            const latestBlockhash = await connection.getLatestBlockhash('confirmed');
             await connection.confirmTransaction({
                 signature: sig,
-                blockhash: latestBlockhash.blockhash,
-                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+                blockhash: tx.recentBlockhash!,
+                lastValidBlockHeight: data.lastValidBlockHeight
             }, 'confirmed');
             setNewMarketPubkey(data.marketPubkey || '');
             setNewMarketQuestion(question);
