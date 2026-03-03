@@ -25,7 +25,7 @@ export const SolanaContext = ({ children }: { children: React.ReactNode }) => {
     const network = WalletAdapterNetwork.Mainnet;
 
     // You can also provide a custom RPC endpoint.
-    const endpoint = useMemo(() => process.env.NEXT_PUBLIC_RPC_URL || "https://solana-mainnet.rpc.extnode.com", []);
+    const endpoint = useMemo(() => process.env.NEXT_PUBLIC_RPC_URL || "https://solana-rpc.publicnode.com", []);
 
     const wallets = useMemo(
         () => [
