@@ -41,7 +41,7 @@ const NETWORK = process.env.SOLANA_NETWORK || 'devnet';
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function getConnection() {
   return new Connection(
-    process.env.SOLANA_NETWORK === 'mainnet-beta' ? (process.env.RPC_URL || "https://mainnet.helius-rpc.com/?api-key=81c9e88d-cf61-4603-afab-c51ef67e3dfd") : clusterApiUrl('devnet'),
+    process.env.SOLANA_NETWORK === 'mainnet-beta' ? (process.env.RPC_URL || "https://solana-mainnet.rpc.extnode.com") : clusterApiUrl('devnet'),
     'confirmed'
   );
 }
