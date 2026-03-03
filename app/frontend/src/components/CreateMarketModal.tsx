@@ -209,7 +209,7 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
                                 <option value="0" style={{ background: '#0f172a' }}>&gt;= (Above or Equal)</option>
                                 <option value="1" style={{ background: '#0f172a' }}>&lt; (Below)</option>
                             </select>
-                            <input type="number" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} placeholder="Target Price ($)" className="input-glass" style={{ flex: 1.5, padding: '0.625rem' }} />
+                            <input type="number" step="any" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} placeholder="Target Price ($)" className="input-glass" style={{ flex: 1.5, padding: '0.625rem' }} />
                         </div>
                     </div>
                 </div>

@@ -300,7 +300,13 @@ app.post('/api/action/create', async (req, res) => {
     
     const oracleType = parseInt(req.query.oracleType || '0', 10);
     const oracleAccount = new PublicKey(req.query.oracleAccount || '11111111111111111111111111111111');
-    const targetPrice = new anchor.BN(req.query.targetPrice || '0');
+    
+    let targetPriceFloat = parseFloat(req.query.targetPrice || '0');
+    if (oracleType === 1) {
+        targetPriceFloat = targetPriceFloat * 100000000;
+    }
+    // Floor it to avoid any lingering decimal residue and convert to string for BN
+    const targetPrice = new anchor.BN(Math.floor(targetPriceFloat).toString());
     const priceDirection = parseInt(req.query.priceDirection || '0', 10);
 
     if (!account || !question) {
