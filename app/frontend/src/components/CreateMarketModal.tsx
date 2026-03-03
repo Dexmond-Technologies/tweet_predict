@@ -68,7 +68,12 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             setMessage('Please approve in wallet…');
             const sig = await sendTransaction(tx, connection);
-            await connection.confirmTransaction(sig, 'confirmed');
+            const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+            await connection.confirmTransaction({
+                signature: sig,
+                blockhash: latestBlockhash.blockhash,
+                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+            }, 'confirmed');
 
             if (data.marketPubkey) setMarketPubkey(data.marketPubkey);
             setStatus('success');
