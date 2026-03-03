@@ -25,7 +25,7 @@ export const SolanaContext = ({ children }: { children: React.ReactNode }) => {
     const network = WalletAdapterNetwork.Mainnet;
 
     // You can also provide a custom RPC endpoint.
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    const endpoint = useMemo(() => process.env.NEXT_PUBLIC_RPC_URL || "https://mainnet.helius-rpc.com/?api-key=81c9e88d-cf61-4603-afab-c51ef67e3dfd", []);
 
     const wallets = useMemo(
         () => [
