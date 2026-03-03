@@ -159,6 +159,7 @@ export default function Home() {
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             setCreateMsg('Approve in wallet…');
             const sig = await sendTransaction(tx, connection);
+            setCreateMsg('Confirming on Solana…');
             await connection.confirmTransaction({
                 signature: sig,
                 blockhash: tx.recentBlockhash!,

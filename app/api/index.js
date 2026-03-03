@@ -41,7 +41,7 @@ const NETWORK = process.env.SOLANA_NETWORK || 'devnet';
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function getConnection() {
   return new Connection(
-    process.env.SOLANA_NETWORK === 'mainnet-beta' ? (process.env.RPC_URL || "https://solana-rpc.publicnode.com") : clusterApiUrl('devnet'),
+    process.env.SOLANA_NETWORK === 'mainnet-beta' ? (process.env.RPC_URL || "https://rpc.ankr.com/solana") : clusterApiUrl('devnet'),
     'confirmed'
   );
 }

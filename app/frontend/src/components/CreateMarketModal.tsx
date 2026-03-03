@@ -68,6 +68,7 @@ export default function CreateMarketModal({ onClose, onSuccess }: Props) {
             const tx = Transaction.from(Buffer.from(data.transaction, 'base64'));
             setMessage('Please approve in wallet…');
             const sig = await sendTransaction(tx, connection);
+            setMessage('Confirming on Solana…');
             await connection.confirmTransaction({
                 signature: sig,
                 blockhash: tx.recentBlockhash!,
